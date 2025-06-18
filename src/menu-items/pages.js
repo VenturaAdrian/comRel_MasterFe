@@ -1,42 +1,58 @@
 // assets
-import { IconKey } from '@tabler/icons-react';
+import { 
+  IconDeviceIpadPlus, 
+  IconHistory, 
+  IconClipboardText,
+  IconBrandFacebook 
+} from '@tabler/icons-react';
+
+
 
 // constant
 const icons = {
-  IconKey
+  IconDeviceIpadPlus,
+  IconHistory,
+  IconClipboardText,
+  IconBrandFacebook
 };
 
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
 
 const pages = {
-  id: 'pages',
-  title: 'Pages',
+  id: 'tools',
+  title: 'Tools',
   caption: 'Pages Caption',
-  icon: icons.IconKey,
   type: 'group',
   children: [
     {
-      id: 'authentication',
-      title: 'Authentication',
-      type: 'collapse',
-      icon: icons.IconKey,
-      children: [
-        {
-          id: 'login',
-          title: 'login',
-          type: 'item',
-          url: '/pages/login',
-          target: true
-        },
-        {
-          id: 'register',
-          title: 'register',
-          type: 'item',
-          url: '/pages/register',
-          target: true
-        }
-      ]
+      id: 'add-form-request',
+      title: 'Add Request',
+      type: 'item',
+      url: '/addform',
+      icon: icons.IconDeviceIpadPlus,
+    },
+    {
+      id: 'history',
+      title: 'History',
+      type: 'item',
+      url: '/history',
+      icon: icons.IconHistory,
+    },
+    {
+      id: 'report',
+      title: 'Reports',
+      type: 'item',
+      url: '/report',
+      icon: icons.IconClipboardText,
+    },
+    {
+      id: 'preview-post',
+      title: 'Preview Post',
+      type: 'item',
+      url: '/review-post',
+      icon: icons.IconBrandFacebook,
     }
+
   ]
 };
 

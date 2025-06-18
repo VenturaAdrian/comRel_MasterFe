@@ -4,6 +4,8 @@ import { Navigate } from 'react-router-dom';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 
+
+
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
@@ -13,7 +15,10 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
-
+const AddForm = Loadable(lazy(() => import('../views/forms/addforms')));
+const History = Loadable(lazy(() => import('../views/history')));
+const Reports = Loadable(lazy(() => import('../views/report/report')));
+const ReviewPost = Loadable(lazy(() => import('../views/preview-post')));
 // ==============================|| MAIN ROUTING ||============================== //
 const RoleAccess = () => {
     if(localStorage.getItem("user") === null){
@@ -57,6 +62,22 @@ const MainRoutes = {
     {
       path: '/sample-page',
       element: <SamplePage />
+    },
+    {
+      path: 'addform',
+      element: <AddForm/>
+    },
+    {
+      path: 'history',
+      element: <History/>
+    },
+    {
+      path: 'report',
+      element: <Reports/>
+    },
+    {
+      path: 'review-post',
+      element: <ReviewPost/>
     }
   ]
 };
