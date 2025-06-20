@@ -30,6 +30,7 @@ const pages = {
       type: 'item',
       url: '/addform',
       icon: icons.IconDeviceIpadPlus,
+      breadcrumbs: false
     },
     {
       id: 'history',
@@ -37,6 +38,7 @@ const pages = {
       type: 'item',
       url: '/history',
       icon: icons.IconHistory,
+      breadcrumbs: false
     },
     {
       id: 'report',
@@ -44,6 +46,7 @@ const pages = {
       type: 'item',
       url: '/report',
       icon: icons.IconClipboardText,
+      breadcrumbs: false
     },
     {
       id: 'preview-post',
@@ -51,6 +54,7 @@ const pages = {
       type: 'item',
       url: '/review-post',
       icon: icons.IconBrandFacebook,
+      breadcrumbs: false
     }
 
   ]

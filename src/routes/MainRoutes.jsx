@@ -5,7 +5,6 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 
 
-
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
 // utilities routing
@@ -19,6 +18,7 @@ const AddForm = Loadable(lazy(() => import('../views/forms/addforms')));
 const History = Loadable(lazy(() => import('../views/history')));
 const Reports = Loadable(lazy(() => import('../views/report/report')));
 const ReviewPost = Loadable(lazy(() => import('../views/preview-post')));
+const Review = Loadable(lazy(() => import('../views/history/review')));
 // ==============================|| MAIN ROUTING ||============================== //
 const RoleAccess = () => {
     if(localStorage.getItem("user") === null){
@@ -78,6 +78,10 @@ const MainRoutes = {
     {
       path: 'review-post',
       element: <ReviewPost/>
+    },
+    {
+      path: 'review',
+      element: <Review/>
     }
   ]
 };

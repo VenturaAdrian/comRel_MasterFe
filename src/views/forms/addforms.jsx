@@ -1,6 +1,20 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import config from "config";
+import axios from 'axios';
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+  InputLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import config from 'config';
 
 export default function AddForm() {
   const [commArea, setCommArea] = useState('');
@@ -8,7 +22,7 @@ export default function AddForm() {
   const [dateTime, setDateTime] = useState('');
   const [commVenue, setCommVenue] = useState('');
   const [commGuest, setCommGuest] = useState('');
-  const [commDocs, setCommDocs] = useState([]); // file object
+  const [commDocs, setCommDocs] = useState([]);
   const [commEmps, setCommEmps] = useState('');
   const [commBenef, setCommBenef] = useState('');
   const [createdby, setCreatedBy] = useState('');
@@ -43,58 +57,125 @@ export default function AddForm() {
 
     try {
       const response = await axios.post(`${config.baseApi1}/request/add-request-form`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      console.log("Response:", response.data);
-      alert("Form submitted successfully!");
+      alert('Form submitted successfully!');
     } catch (err) {
-      console.error('Error submitting form:', err);
-      alert("Failed to submit.");
+      alert('Failed to submit.');
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Add Form Page</h2>
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div>
-          <label>Community Area/Barangay</label>
-          <input type="text" value={commArea} onChange={(e) => setCommArea(e.target.value)} required />
-        </div>
-        <div>
-          <label>Type of Community Activity</label>
-          <input type="text" value={commAct} onChange={(e) => setCommAct(e.target.value)} required />
-        </div>
-        <div>
-          <label>Date and Time</label>
-          <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} required />
-        </div>
-        <div>
-          <label>Venue/Place</label>
-          <input type="text" value={commVenue} onChange={(e) => setCommVenue(e.target.value)} required />
-        </div>
-        <div>
-          <label>Guests and People Involved</label>
-          <input type="text" value={commGuest} onChange={(e) => setCommGuest(e.target.value)} required />
-        </div>
-        <div>
-          <label>Supporting Document</label>
-          <input type="file" multiple onChange={(e) => setCommDocs(e.target.files)} />
-        </div>
-        <div>
-          <label>COMREL Employees Involved</label>
-          <input type="text" value={commEmps} onChange={(e) => setCommEmps(e.target.value)} required />
-        </div>
-        <div>
-          <label>Beneficiaries</label>
-          <input type="text" value={commBenef} onChange={(e) => setCommBenef(e.target.value)} required />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
-      <div><button onClick={handleBack}>Home</button></div>
-    </div>
+    <Box sx={{ mt: 0, pt: 0, backgroundColor: '#f5f7fa', minHeight: '100vh' }}>
+      <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto', mt: 2 }}>
+
+        <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data" noValidate>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Community Area/Barangay"
+                fullWidth
+                value={commArea}
+                onChange={(e) => setCommArea(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Type of Community Activity"
+                fullWidth
+                value={commAct}
+                onChange={(e) => setCommAct(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Date and Time"
+                type="datetime-local"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={dateTime}
+                onChange={(e) => setDateTime(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Venue/Place"
+                fullWidth
+                value={commVenue}
+                onChange={(e) => setCommVenue(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Guests and People Involved"
+                fullWidth
+                value={commGuest}
+                onChange={(e) => setCommGuest(e.target.value)}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <InputLabel shrink>Supporting Documents</InputLabel>
+              <Button variant="contained" component="label">
+                Upload Files
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={(e) => setCommDocs(Array.from(e.target.files))}
+                />
+              </Button>
+
+              {/* Display selected files */}
+              {commDocs.length > 0 && (
+                <List dense>
+                  {commDocs.map((file, index) => (
+                    <ListItem key={index}>
+                      <ListItemIcon>
+                        <InsertDriveFileIcon />
+                      </ListItemIcon>
+                      <ListItemText primary={file.name} />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                label="COMREL Employees Involved"
+                fullWidth
+                value={commEmps}
+                onChange={(e) => setCommEmps(e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Beneficiaries"
+                fullWidth
+                value={commBenef}
+                onChange={(e) => setCommBenef(e.target.value)}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} textAlign="center">
+              <Button type="submit" variant="contained" sx={{ mr: 2 }}>
+                Submit
+              </Button>
+              <Button variant="outlined" onClick={handleBack}>
+                Home
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
