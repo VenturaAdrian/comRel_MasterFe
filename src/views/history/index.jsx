@@ -1,131 +1,214 @@
 import axios from "axios";
 import config from "config";
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Grid,
+  Box,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Stack
+} from "@mui/material";
 
 export default function History() {
+  const [historyData, setHistoryData] = useState([]);
+  const [userPosition, setUserPosition] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
 
-    const [historyData, setHistoryData] = useState([]);
-    const [userPosition, setUserPosition] = useState('');
-    const [reqStatus, setReqStatus] = useState('');
+  useEffect(() => {
+    axios
+      .get(`${config.baseApi1}/request/history`)
+      .then((response) => {
+        setHistoryData(response.data);
+      })
+      .catch((error) => {
+        console.error("ERROR FETCHING FE:", error);
+      });
 
-    useEffect(() =>{
-        axios.get(`${config.baseApi1}/request/history`)
-        .then(response => {
-            setHistoryData(response.data);
-            setReqStatus(response.data.request_status);
+    const empInfo = JSON.parse(localStorage.getItem("user"));
+    setUserPosition(empInfo.emp_position);
+  }, []);
 
-            const allStatuses = response.data.map(item => item.request_status);
-            console.log(allStatuses)
-        })
-        .catch(error => {
-            console.error('ERROR FETCHING FE:', error);
-        })
+  const handleEdit = (item) => {
+    const params = new URLSearchParams({ id: item.request_id });
+    window.location.replace(`/comrel/editform?${params.toString()}`);
+  };
 
-        const empInfo = JSON.parse(localStorage.getItem('user'));
-        setUserPosition(empInfo.emp_position)
-        
-       
-    },[])
+  const handleView = (item) => {
+    const params = new URLSearchParams({ id: item.request_id });
+    window.location.replace(`/comrel/viewform?${params.toString()}`);
+  };
 
-    const handleEdit = (item) => {
-  const params = new URLSearchParams({
-    id: item.request_id,
+  const handleReview = (item) => {
+    const params = new URLSearchParams({ id: item.request_id });
+    window.location.replace(`/comrel/review?${params.toString()}`);
+  };
+
+  const handleBack = () => {
+    window.location.replace(`${config.baseUrl}/comrel/dashboard`);
+  };
+
+  // Filter
+  let filteredData = filterStatus
+    ? historyData.filter(item =>
+        item.request_status.toLowerCase() === filterStatus.toLowerCase()
+      )
+    : [...historyData];
+
+  // Sort
+  filteredData.sort((a, b) => {
+    const dateA = new Date(a.date_Time);
+    const dateB = new Date(b.date_Time);
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
-  window.location.replace(`/comrel/editform?${params.toString()}`);
-};
+  const getThumbnailFromCommDocs = (commDocsStr = "", requestId) => {
+    const files = commDocsStr.split(",").map(f => f.trim()).filter(Boolean);
+    for (let file of files) {
+      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file);
+      if (isImage) {
+        const fallback = `${config.baseApi1}/files/request_${requestId}/images/${file}`;
+        return {
+          src: `${config.baseApi1}/files/${file}`,
+          fallback
+        };
+      }
+    }
+    return null;
+  };
 
-const handleView = (item) => {
-const params = new URLSearchParams({
-  id: item.request_id,
-});
+  return (
+<Box sx={{ p: 6, mt:6, backgroundColor: "#f5f5f5" }}>
 
-window.location.replace(`/comrel/viewform?${params.toString()}`);
+      {/* Filter & Sort Controls */}
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={filterStatus}
+            label="Status"
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="Request">Request</MenuItem>
+            <MenuItem value="Reviewed">Reviewed</MenuItem>
+            <MenuItem value="Declined">Declined</MenuItem>
+            <MenuItem value="Accepted">Accepted</MenuItem>
+            <MenuItem value="To-Post">To-Post</MenuItem>
+          </Select>
+        </FormControl>
 
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Sort By Date</InputLabel>
+          <Select
+            value={sortOrder}
+            label="Sort By Date"
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <MenuItem value="newest">Newest First</MenuItem>
+            <MenuItem value="oldest">Oldest First</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
+      {/* Card List */}
+      <Grid container spacing={2}>
+        {filteredData.map((item) => {
+          const image = getThumbnailFromCommDocs(item.comm_Docs, item.request_id);
+
+          return (
+            <Grid item xs={12} md={6} key={item.request_id}>
+              <Card sx={{ display: "flex", backgroundColor: "#ddd", border: '2px solid #274e13  ' }}>
+                <Box
+                  sx={{
+                    width: 150,
+                    height: 150,
+                    m: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "#f0f0f0"
+                  }}
+                >
+                  {image ? (
+                    <img
+                      src={image.src}
+                      alt="Document"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = image.fallback;
+                      }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: "#ccc",
+                        color: "#666",
+                        fontSize: 14,
+                        textAlign: "center",
+                        px: 1
+                      }}
+                    >
+                      No Image
+                    </Box>
+                  )}
+                </Box>
+                <CardContent>
+                  <Typography><strong>Request ID:</strong> {item.request_id}</Typography>
+                  <Typography><strong>Status:</strong> {item.request_status}</Typography>
+                  <Typography><strong>Community Area/Barangay:</strong> {item.comm_Area}</Typography>
+                  <Typography><strong>Community Activity:</strong> {item.comm_Act}</Typography>
+                  <Typography><strong>Date/Time:</strong> {item.date_Time}</Typography>
+
+                  <Box mt={1}>
+                    {(userPosition !== "encoder" || item.request_status === "Reviewed") && (
+                      <>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleEdit(item)}
+                          sx={{ mr: 1 }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleView(item)}
+                          sx={{ mr: 1 }}
+                        >
+                          View
+                        </Button>
+                      </>
+                    )}
+                    {userPosition !== "encoder" && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleReview(item)}
+                      >
+                        Review
+                      </Button>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
+  );
 }
-const handleback = () => {
-  window.location.replace(`${config.baseUrl}/comrel/dashboard`);
-}
-
-const handleReview = (item) => {
-  const params = new URLSearchParams({
-  id: item.request_id,
-  
-});
-window.location.replace(`/comrel/review?${params.toString()}`);
-}
-
-
-
-
-   return (
-  <div style={{ padding: '20px' }}>
-    <h2>Request History</h2>
-    <button onClick={handleback}>Home</button>
-    <table style={{
-      width: '100%',
-      borderCollapse: 'collapse',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-    }}>
-      <thead>
-        <tr style={{ background: '#f5f5f5' }}>
-          <th style={thStyle}>ID</th>
-          <th style={thStyle}>Status</th>
-          <th style={thStyle}>Activity</th>
-          <th style={thStyle}>Venue</th>
-          <th style={thStyle}>Date/Time</th>
-          <th style={thStyle}>Area</th>
-          <th style={thStyle}>Guest</th>
-          <th style={thStyle}>Docs</th>
-          <th style={thStyle}>Emps</th>
-          <th style={thStyle}>Beneficiaries</th>
-          <th style={thStyle}>Created By</th>
-
-        {userPosition !== "encoder" || historyData.some(item => item.request_status === "Reviewed") && (
-        <th style={thStyle}>Action</th>
-        )}
-        </tr>
-      </thead>
-      <tbody>
-        {historyData.map((item) => (
-          <tr key={item.request_id}>
-            <td style={tdStyle}>{item.request_id}</td>
-            <td style={tdStyle}>{item.request_status}</td>
-            <td style={tdStyle}>{item.comm_Act}</td>
-            <td style={tdStyle}>{item.comm_Venue}</td>
-            <td style={tdStyle}>{item.date_Time}</td>
-            <td style={tdStyle}>{item.comm_Area}</td>
-            <td style={tdStyle}>{item.comm_Guest}</td>
-            <td style={tdStyle}>{item.comm_Docs}</td>
-            <td style={tdStyle}>{item.comm_Emps}</td>
-            <td style={tdStyle}>{item.comm_Benef}</td>
-            <td style={tdStyle}>{item.created_by}</td>
-
-            {userPosition !== "encoder" || item.request_status === "Reviewed" &&
-            <td style={tdStyle}>
-              <button onClick={() => handleEdit(item)}>Edit</button>
-           
-              <button onClick={() => handleView(item)}>View</button>
-            </td>}
-            {userPosition !== "encoder" &&<td style={tdStyle}>
-              <button onClick={() => handleReview(item)}>REVIEW</button>
-            </td>}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
-
-}const thStyle = {
-  border: '1px solid #ddd',
-  padding: '8px',
-  fontWeight: 'bold',
-  textAlign: 'left'
-};
-
-const tdStyle = {
-  border: '1px solid #ddd',
-  padding: '8px',
-};
