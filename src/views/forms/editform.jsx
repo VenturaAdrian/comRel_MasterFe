@@ -134,10 +134,6 @@ export default function EditForm() {
       });
   };
 
-  const handleBack = () => {
-    window.location.replace(`${config.baseUrl}/comrel/history`);
-  };
-
   if (!formData) return <Typography>Loading...</Typography>;
 
   return (

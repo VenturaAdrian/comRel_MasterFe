@@ -12,7 +12,9 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Autocomplete
+  Autocomplete,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import config from 'config';
@@ -39,7 +41,11 @@ export default function AddForm() {
   const [createdby, setCreatedBy] = useState('');
   const [errors, setErrors] = useState({});
 
-  const fileInputRef = useRef(null); // Ref for resetting file input
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const empInfo = JSON.parse(localStorage.getItem('user'));
@@ -47,10 +53,6 @@ export default function AddForm() {
       setCreatedBy(empInfo.user_name);
     }
   }, []);
-
-  const handleBack = () => {
-    window.location.replace(`${config.baseUrl}/comrel/dashboard`);
-  };
 
   const validateFields = () => {
     const newErrors = {};
@@ -89,9 +91,25 @@ export default function AddForm() {
       await axios.post(`${config.baseApi1}/request/add-request-form`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert('Form submitted successfully!');
+      setSnackbarMsg('Form submitted successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      setCommArea([]);
+      setCommAct('');
+      setDateTime('');
+      setCommVenue('');
+      setCommGuest([]);
+      setCommDocs([]);
+      setCommEmps([]);
+      setCommBenef([]);
+      
+
+
     } catch (err) {
-      alert('Failed to submit.');
+      setSnackbarMsg('Failed to submit.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
@@ -100,13 +118,12 @@ export default function AddForm() {
   };
 
   return (
-    <Box sx={{ mt: 4, p:2,backgroundColor: '#93c47d', minHeight: '100vh'}}>
-      <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto', mt: 2 ,mb:2}}>
+    <Box sx={{ mt: 4, p: 2, background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)', minHeight: '100vh' }}>
+      <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto', mt: 2, mb: 2 }}>
         <Typography variant="h5" mb={2} textAlign="center">Add Community Request Form</Typography>
 
         <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data" noValidate>
           <Grid container spacing={2}>
-
             <Grid item xs={12}>
               <Autocomplete
                 multiple
@@ -215,7 +232,7 @@ export default function AddForm() {
                   ref={fileInputRef}
                   onChange={(e) => {
                     setCommDocs(Array.from(e.target.files));
-                    e.target.value = null; // reset to allow same file re-selection
+                    e.target.value = null;
                   }}
                 />
               </Button>
@@ -298,10 +315,25 @@ export default function AddForm() {
                 Submit
               </Button>
             </Grid>
-
           </Grid>
         </Box>
       </Paper>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

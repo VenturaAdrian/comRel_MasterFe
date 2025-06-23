@@ -9,9 +9,17 @@ import {
   Card,
   CardContent,
   Paper,
-  Divider
+  Divider,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
-
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import Grid from '@mui/material/Grid2';
 export default function Review() {
   const requestID = new URLSearchParams(window.location.search).get('id');
   const [formData, setFormData] = useState(null);
@@ -82,7 +90,7 @@ export default function Review() {
         }
       });
       alert('Request deleted successfully.');
-      handleBack();
+      window.history.back();
     } catch (err) {
       console.error('Failed to delete request:', err);
       alert('Failed to delete this request');
@@ -114,28 +122,44 @@ export default function Review() {
     window.location.replace(`/comrel/edit?${params.toString()}`);
   };
 
+  
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>Review Page</Typography>
+    <Box sx={{ p: 3  ,mt:4, background: 'linear-gradient(to bottom, #ffdc73, #ffcf40, #ffbf00', borderRadius: 2, boxShadow: 3 }}>
+      
 
       {formData ? (
-        <Card variant="outlined" sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography>ID: {formData.request_id}</Typography>
-            <Typography>Status: {formData.request_status}</Typography>
-            <Typography>Community: {formData.comm_Area}</Typography>
-            <Typography>Activity: {formData.comm_Act}</Typography>
-            <Typography>Date/Time: {formData.date_Time}</Typography>
-            <Typography>Venue: {formData.comm_Venue}</Typography>
-            <Typography>Guests: {formData.comm_Guest}</Typography>
-            <Typography>Employees: {formData.comm_Emps}</Typography>
-            <Typography>Beneficiaries: {formData.comm_Benef}</Typography>
+        <Card variant="outlined" sx={{ mb: 3, position: 'relative' }}>
+          {/* Top-right buttons */}
+          <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
+              <EditIcon />
+            </IconButton>
+            <IconButton onClick={handleDelete} sx={{ color: 'red' }}>
+              <DeleteIcon />
+            </IconButton>
+          </Box>
 
-            {/* Simplified File Display */}
+          <CardContent>
+            <Grid size={8}> 
+            <Typography textAlign="center" fontWeight="bold" fontSize={24}>
+              Request ID: {formData.request_id}
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+    </Grid>
+            <Typography><strong>Status:</strong> {formData.request_status}</Typography>
+            <Typography><strong>Community:</strong> {formData.comm_Area}</Typography>
+            <Typography><strong>Activity:</strong> {formData.comm_Act}</Typography>
+            <Typography><strong>Date/Time:</strong> {formData.date_Time}</Typography>
+            <Typography><strong>Venue:</strong> {formData.comm_Venue}</Typography>
+            <Typography><strong>Guests:</strong> {formData.comm_Guest}</Typography>
+            <Typography><strong>Employees:</strong> {formData.comm_Emps}</Typography>
+            <Typography><strong>Beneficiaries:</strong> {formData.comm_Benef}</Typography>
+
             {formData.comm_Docs && (
               <Box mt={2}>
                 <Typography variant="subtitle1" gutterBottom>Supporting Documents:</Typography>
-                <Box display="flex" flexDirection="column" gap={1}>
+                <Box display="flex" flexWrap="wrap" gap={2}>
                   {formData.comm_Docs.split(',').map((file, index) => {
                     const fileTrimmed = file.trim();
                     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileTrimmed);
@@ -143,7 +167,19 @@ export default function Review() {
                     const fallbackUrl = `${config.baseApi1}/files/request_${formData.request_id}/images/${fileTrimmed}`;
 
                     return (
-                      <Box key={index} sx={{ border: '1px solid #ccc', p: 1.5, borderRadius: 1 }}>
+                      <Box
+                        key={index}
+                        sx={{
+                          width: 'calc(25% - 16px)',
+                          border: '1px solid #ccc',
+                          p: 1,
+                          borderRadius: 1,
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
                         {isImage ? (
                           <img
                             src={fileUrl}
@@ -152,24 +188,42 @@ export default function Review() {
                               e.target.src = fallbackUrl;
                             }}
                             alt={`Document ${index + 1}`}
-                            style={{ width: '100%', maxWidth: 300, borderRadius: 6 }}
+                            style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: 4 }}
                           />
                         ) : (
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2" noWrap sx={{ maxWidth: '70%' }}>
-                              {fileTrimmed}
+                          <Box
+                            sx={{
+                              height: '150px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: '#f5f5f5',
+                              borderRadius: 1
+                            }}
+                          >
+                            <Typography variant="body2" color="text.secondary">
+                              {fileTrimmed.split('.').pop().toUpperCase()} File
                             </Typography>
-                            <Button
-                              size="small"
-                              href={fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              variant="outlined"
-                            >
-                              View
-                            </Button>
                           </Box>
                         )}
+                        <Typography
+                          variant="body2"
+                          sx={{ mt: 1, wordBreak: 'break-word' }}
+                          noWrap
+                          title={fileTrimmed}
+                        >
+                          {fileTrimmed}
+                        </Typography>
+                        <Button
+                          size="small"
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="outlined"
+                          sx={{ mt: 1 }}
+                        >
+                          View
+                        </Button>
                       </Box>
                     );
                   })}
@@ -221,24 +275,30 @@ export default function Review() {
         </Box>
       )}
 
-      {/* Actions */}
-      <Box mt={3} display="flex" gap={2} flexWrap="wrap">
-        <Button variant="contained" color="warning" onClick={handleDecline}>Decline</Button>
-        <Button variant="contained" color="error" onClick={handleDelete}>Delete</Button>
-        <Button variant="contained" color="success" onClick={handleAccept}>Accept</Button>
-        <Button variant="contained" color="primary" onClick={handleEdit}>Edit</Button>
+      {/* Action Buttons */}
+      <Box mt={3} display="flex" gap={2} flexWrap="wrap" sx={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
+        <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
       </Box>
 
-      {/* Delete Confirmation */}
-      {showDeleteConfirm && (
-        <Paper sx={{ mt: 2, p: 2 }} elevation={2}>
-          <Typography>Are you sure you want to delete this request?</Typography>
-          <Box mt={1} display="flex" gap={2}>
-            <Button variant="contained" color="error" onClick={confirmDelete}>Yes</Button>
-            <Button variant="outlined" onClick={() => setShowDeleteConfirm(false)}>No</Button>
-          </Box>
-        </Paper>
-      )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this request? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions >
+          <Button onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
