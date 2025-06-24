@@ -21,6 +21,9 @@ const Reports = Loadable(lazy(() => import('../views/report/report')));
 const ReviewPost = Loadable(lazy(() => import('../views/preview-post')));
 const Review = Loadable(lazy(() => import('../views/history/review')));
 const EditForm = Loadable(lazy(() => import('../views/forms/editform')));
+const Register = Loadable(lazy(() => import('../views/pages/auth-forms/AuthRegister')));
+
+
 // ==============================|| MAIN ROUTING ||============================== //
 const RoleAccess = () => {
     if(localStorage.getItem("user") === null){
@@ -88,6 +91,10 @@ const MainRoutes = {
     {
       path:'edit',
       element:<EditForm/>
+    },
+    {
+      path:'register',
+      element: <Register/>
     }
   ]
 };

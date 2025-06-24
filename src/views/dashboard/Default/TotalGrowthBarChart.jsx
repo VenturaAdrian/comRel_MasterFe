@@ -1,143 +1,179 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import config from "config";
+import Chart from "react-apexcharts";
+import {
+  Box,
+  Grid,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import Grid from '@mui/material/Grid2';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+export default function Reports() {
+  const [data, setData] = useState([]);
+  const [xAxisOption, setXAxisOption] = useState("request_status");
+  const [yAxisOption, setYAxisOption] = useState("comm_Act");
+  const [dateMode, setDateMode] = useState("month");
 
-// third party
-import ApexCharts from 'apexcharts';
-import Chart from 'react-apexcharts';
+  const [chartData, setChartData] = useState({
+    options: { chart: { id: "summary" }, xaxis: { categories: [] } },
+    series: [],
+  });
 
-// project imports
-import useConfig from 'hooks/useConfig';
-import SkeletonTotalGrowthBarChart from 'ui-component/cards/Skeleton/TotalGrowthBarChart';
-import MainCard from 'ui-component/cards/MainCard';
-import { gridSpacing } from 'store/constant';
+  const formatDateKey = (dateStr) => {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const week = String(getWeekNumber(date)).padStart(2, "0");
 
-// chart data
-import chartData from './chart-data/total-growth-bar-chart';
+    if (dateMode === "year") return `${year}`;
+    if (dateMode === "month") return `${year}-${month}`;
+    if (dateMode === "week") return `${year}-W${week}`;
+    return dateStr;
+  };
 
-const status = [
-  {
-    value: 'today',
-    label: 'Today'
-  },
-  {
-    value: 'month',
-    label: 'This Month'
-  },
-  {
-    value: 'year',
-    label: 'This Year'
-  }
-];
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return (
+      1 +
+      Math.round(
+        ((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7
+      )
+    );
+  };
 
-export default function TotalGrowthBarChart({ isLoading }) {
-  const [value, setValue] = React.useState('today');
-  const theme = useTheme();
-  const { mode } = useConfig();
+  const groupData = () => {
+    const grouped = {};
 
-  const { primary } = theme.palette.text;
-  const darkLight = theme.palette.dark.light;
-  const divider = theme.palette.divider;
-  const grey500 = theme.palette.grey[500];
+    data.forEach((item) => {
+      const dateKey = formatDateKey(item.date_Time);
+      const xVal = item[xAxisOption] || "Unknown";
+      const yVal = item[yAxisOption] || "Unknown";
 
-  const primary200 = theme.palette.primary[200];
-  const primaryDark = theme.palette.primary.dark;
-  const secondaryMain = theme.palette.secondary.main;
-  const secondaryLight = theme.palette.secondary.light;
+      const groupKey = `${dateKey}_${xVal}`;
 
-  React.useEffect(() => {
-    const newChartData = {
-      ...chartData.options,
-      colors: [primary200, primaryDark, secondaryMain, secondaryLight],
-      xaxis: {
-        labels: {
-          style: {
-            style: { colors: primary }
-          }
-        }
+      if (!grouped[groupKey]) grouped[groupKey] = {};
+      if (!grouped[groupKey][yVal]) grouped[groupKey][yVal] = 0;
+
+      grouped[groupKey][yVal]++;
+    });
+
+    const categories = [...new Set(data.map((item) => {
+      const dateKey = formatDateKey(item.date_Time);
+      return `${dateKey}_${item[xAxisOption] || "Unknown"}`;
+    }))].sort();
+
+    const yKeys = new Set();
+    Object.values(grouped).forEach(obj =>
+      Object.keys(obj).forEach(k => yKeys.add(k))
+    );
+
+    const series = Array.from(yKeys).map(yVal => ({
+      name: yVal,
+      data: categories.map(cat => grouped[cat]?.[yVal] || 0),
+    }));
+
+    setChartData({
+      options: {
+        chart: {
+          id: "summary",
+          stacked: true,
+        },
+        xaxis: {
+          categories,
+          labels: {
+            rotate: -45,
+          },
+        },
+        title: {
+          text: `Grouped by ${xAxisOption} and ${yAxisOption} (${dateMode})`,
+          align: "center",
+        },
+        tooltip: {
+          shared: true,
+          intersect: false,
+        },
+        legend: {
+          position: "bottom",
+        },
       },
-      yaxis: {
-        labels: {
-          style: {
-            style: { colors: primary }
-          }
-        }
-      },
-      grid: { borderColor: divider },
-      tooltip: { theme: mode },
-      legend: { labels: { colors: grey500 } }
-    };
+      series,
+    });
+  };
 
-    // do not load chart when loading
-    if (!isLoading) {
-      ApexCharts.exec(`bar-chart`, 'updateOptions', newChartData);
+  useEffect(() => {
+    axios
+      .get(`${config.baseApi1}/request/history`)
+      .then((res) => setData(res.data || []))
+      .catch((err) => console.error("Fetch Error:", err));
+  }, []);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      groupData();
     }
-  }, [mode, primary200, primaryDark, secondaryMain, secondaryLight, primary, darkLight, divider, isLoading, grey500]);
+  }, [data, xAxisOption, yAxisOption, dateMode]);
 
   return (
-    <>
-      {isLoading ? (
-        <SkeletonTotalGrowthBarChart />
-      ) : (
-        <MainCard>
-          <Grid container spacing={gridSpacing}>
-            <Grid size={12}>
-              <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                <Grid>
-                  <Grid container direction="column" spacing={1}>
-                    <Grid>
-                      <Typography variant="subtitle2">Total Growth</Typography>
-                    </Grid>
-                    <Grid>
-                      <Typography variant="h3">$2,324.00</Typography>
-                    </Grid>
-                  </Grid>
-                </Grid>
-                <Grid>
-                  <TextField id="standard-select-currency" select value={value} onChange={(e) => setValue(e.target.value)}>
-                    {status.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid
-              size={12}
-              sx={{
-                ...theme.applyStyles('light', {
-                  '& .apexcharts-series:nth-of-type(4) path:hover': {
-                    filter: `brightness(0.95)`,
-                    transition: 'all 0.3s ease'
-                  }
-                }),
-                '& .apexcharts-menu': {
-                  bgcolor: 'background.paper'
-                },
-                '.apexcharts-theme-light .apexcharts-menu-item:hover': {
-                  bgcolor: 'dark.main'
-                },
-                '& .apexcharts-theme-light .apexcharts-menu-icon:hover svg, .apexcharts-theme-light .apexcharts-reset-icon:hover svg, .apexcharts-theme-light .apexcharts-selection-icon:not(.apexcharts-selected):hover svg, .apexcharts-theme-light .apexcharts-zoom-icon:not(.apexcharts-selected):hover svg, .apexcharts-theme-light .apexcharts-zoomin-icon:hover svg, .apexcharts-theme-light .apexcharts-zoomout-icon:hover svg':
-                  {
-                    fill: theme.palette.grey[400]
-                  }
-              }}
+    <Box sx={{ p: 3 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>X-Axis</InputLabel>
+            <Select
+              value={xAxisOption}
+              onChange={(e) => setXAxisOption(e.target.value)}
+              label="X-Axis"
             >
-              <Chart {...chartData} />
-            </Grid>
-          </Grid>
-        </MainCard>
-      )}
-    </>
+              <MenuItem value="request_status">Request Status</MenuItem>
+              <MenuItem value="comm_Act">Activity</MenuItem>
+              <MenuItem value="comm_Area">Barangay</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>Y-Axis</InputLabel>
+            <Select
+              value={yAxisOption}
+              onChange={(e) => setYAxisOption(e.target.value)}
+              label="Y-Axis"
+            >
+              <MenuItem value="comm_Act">Activity</MenuItem>
+              <MenuItem value="comm_Area">Barangay</MenuItem>
+              <MenuItem value="request_status">Request Status</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>Date Mode</InputLabel>
+            <Select
+              value={dateMode}
+              onChange={(e) => setDateMode(e.target.value)}
+              label="Date Mode"
+            >
+              <MenuItem value="week">Week</MenuItem>
+              <MenuItem value="month">Month</MenuItem>
+              <MenuItem value="year">Year</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+
+      <Chart
+        options={chartData.options}
+        series={chartData.series}
+        type="bar"
+        height={450}
+      />
+    </Box>
   );
 }
-
-TotalGrowthBarChart.propTypes = { isLoading: PropTypes.bool };

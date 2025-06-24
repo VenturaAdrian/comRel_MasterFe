@@ -152,7 +152,7 @@ export default function ToBePosted() {
 
           {/* Actions (Edit, View, Review) */}
           <Stack direction="row" spacing={1} p={2} flexWrap="wrap">
-            {(userPosition !== "encoder" || item.request_status === "Reviewed") && (
+            {(userPosition !== "encoder" || item.request_status === "reviewed") && (
               <>
                 <Button variant="contained" color="primary" onClick={() => handleEdit(item.request_id)}>
                   ✏️ Edit

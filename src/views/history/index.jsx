@@ -76,15 +76,25 @@ export default function History() {
   };
 
   return (
-    <Box sx={{ p: 6, mt: 6, backgroundColor: "#f5f5f5" }}>
+    <Box sx={{ p: 6, mt: 6, background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)' }}>
       {/* Filter & Sort Controls */}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Status</InputLabel>
+        <FormControl sx={{ minWidth: 200}}>
+          <InputLabel  sx={{ color: '#1b4332' }}>Status</InputLabel>
           <Select
             value={filterStatus}
             label="Status"
             onChange={(e) => setFilterStatus(e.target.value)}
+            sx={{
+              color: ' #1b4332', // text color
+              '.MuiOutlinedInput-notchedOutline': {
+                borderColor: ' #1b4332',
+                borderWidth:'2px' // border color
+              },
+              '& .MuiSvgIcon-root': {
+                color: '#1b4332', // dropdown arrow color
+              }
+            }}
           >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="Request">Request</MenuItem>
@@ -96,12 +106,23 @@ export default function History() {
         </FormControl>
 
         <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Sort By Date</InputLabel>
-          <Select
-            value={sortOrder}
-            label="Sort By Date"
-            onChange={(e) => setSortOrder(e.target.value)}
-          >
+          <InputLabel sx={{ color: '#1b4332' }}>Sort By Date</InputLabel>
+  <Select
+    value={sortOrder}
+    label="Sort By Date"
+    onChange={(e) => setSortOrder(e.target.value)}
+    sx={{
+      color: '#1b4332', // text color
+      '.MuiOutlinedInput-notchedOutline': {
+        borderColor: '#1b4332',
+        borderWidth:'2px' // border color
+      },
+      
+      '& .MuiSvgIcon-root': {
+        color: '#1b4332', // dropdown arrow color
+      }
+    }}
+  >
             <MenuItem value="newest">Newest First</MenuItem>
             <MenuItem value="oldest">Oldest First</MenuItem>
           </Select>
@@ -114,8 +135,8 @@ export default function History() {
           const preview = getFirstFilePreview(item.comm_Docs, item.request_id);
 
           return (
-            <Grid item xs={12} md={6} key={item.request_id}>
-              <Card sx={{ display: "flex", backgroundColor: "#ddd", border: '2px solid #274e13' }}>
+            <Grid item xs={12} md={6} key={item.request_id} >
+              <Card sx={{ display: "flex", background: 'linear-gradient( #e0e0e0,rgb(220, 219, 219))', border: '2px solid #274e13' }}>
                 <Box
                   sx={{
                     width: 150,
@@ -174,7 +195,7 @@ export default function History() {
                   </Typography>
 
                   <Box mt={1}>
-                    {(userPosition !== "encoder" || item.request_status === "Reviewed") && (
+                    {(userPosition !== "encoder" || item.request_status === "reviewed") && (
                       <>
                         <Button
                           variant="outlined"

@@ -1,3 +1,7 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import config from 'config';
+
 import PropTypes from 'prop-types';
 // material-ui
 import { styled, useTheme } from '@mui/material/styles';
@@ -46,6 +50,22 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
 
 export default function TotalIncomeDarkCard({ isLoading }) {
   const theme = useTheme();
+const [historyData, setHistoryData] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${config.baseApi}/request/history`)
+      .then((response) => {
+        setHistoryData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching history data:', error);
+      });
+  }, []); // Avoid repeated fetches
+
+  // Count how many have status === 'request'
+  const requestCount = historyData.filter(item => item.request_status?.toLowerCase() === 'request').length;
+
+  
 
   return (
     <>
@@ -77,12 +97,12 @@ export default function TotalIncomeDarkCard({ isLoading }) {
                   }}
                   primary={
                     <Typography variant="h4" sx={{ color: '#fff' }}>
-                      $203k
+                      {requestCount}
                     </Typography>
                   }
                   secondary={
                     <Typography variant="subtitle2" sx={{ color: 'primary.light', mt: 0.25 }}>
-                      Total Income
+                      Total Request Forms
                     </Typography>
                   }
                 />

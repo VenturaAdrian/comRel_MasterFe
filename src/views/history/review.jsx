@@ -29,25 +29,32 @@ export default function Review() {
   const [showComments, setShowComments] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const [position, setPosition] = useState('')
+  const [status, setStatus] = useState('');
   useEffect(() => {
     const fetchData = async () => {
       try {
         const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
           params: { id: requestID }
         });
-        setFormData(requestRes.data);
-
+        const data = requestRes.data
+        setFormData(data);
+        setStatus(data.request_status)
+        
         const commentsRes = await axios.get(`${config.baseApi1}/request/comment/${requestID}`);
         setComments(commentsRes.data);
       } catch (err) {
         console.error('Error fetching data:', err);
       }
+
     };
 
     if (requestID) fetchData();
 
     const empInfo = JSON.parse(localStorage.getItem('user'));
-    if (empInfo?.user_name) setCurrentUser(empInfo.user_name);
+    if (empInfo?.user_name) 
+      setCurrentUser(empInfo.user_name);
+    setPosition(empInfo.emp_position)
   }, [requestID]);
 
   const handleCommentSubmit = async (e) => {
@@ -64,7 +71,7 @@ export default function Review() {
       setComments(res.data);
 
       await axios.post(`${config.baseApi1}/request/comment-decline`, {
-        request_status: 'Reviewed',
+        request_status: 'reviewed',
         request_id: requestID,
         currentUser
       });
@@ -100,7 +107,7 @@ export default function Review() {
   const handleAccept = async () => {
     try {
       const res = await axios.post(`${config.baseApi1}/request/accept`, {
-        request_status: 'Accepted',
+        request_status: 'accepted',
         request_id: requestID,
         currentUser
       });
@@ -125,27 +132,29 @@ export default function Review() {
   
 
   return (
-    <Box sx={{ p: 3  ,mt:4, background: 'linear-gradient(to bottom, #ffdc73, #ffcf40, #ffbf00', borderRadius: 2, boxShadow: 3 }}>
+    <Box sx={{ p: 3  ,mt:4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
       
 
       {formData ? (
-        <Card variant="outlined" sx={{ mb: 3, position: 'relative' }}>
+        <Card variant="outlined" sx={{ mb: 3, position: 'relative',  }}>
           {/* Top-right buttons */}
-          <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-            <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={handleDelete} sx={{ color: 'red' }}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
+          {(position === 'admin' || status === 'reviewed') && (
+  <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
+    <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
+      <EditIcon />
+    </IconButton>
+    <IconButton onClick={handleDelete} sx={{ color: 'red' }}>
+      <DeleteIcon />
+    </IconButton>
+  </Box>
+)}
 
-          <CardContent>
-            <Grid size={8}> 
+          <CardContent sx={{background: 'linear-gradient(rgb(253, 253, 253),rgb(222, 220, 220) )'}}>
+            <Grid size={8}  > 
             <Typography textAlign="center" fontWeight="bold" fontSize={24}>
               Request ID: {formData.request_id}
             </Typography>
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2, borderColor:'rgb(157, 156, 156)' }} />
     </Grid>
             <Typography><strong>Status:</strong> {formData.request_status}</Typography>
             <Typography><strong>Community:</strong> {formData.comm_Area}</Typography>
@@ -171,7 +180,8 @@ export default function Review() {
                         key={index}
                         sx={{
                           width: 'calc(25% - 16px)',
-                          border: '1px solid #ccc',
+                          border: '2px solid #ccc',
+                          borderColor:'#2F5D0B',
                           p: 1,
                           borderRadius: 1,
                           textAlign: 'center',
@@ -220,7 +230,7 @@ export default function Review() {
                           target="_blank"
                           rel="noopener noreferrer"
                           variant="outlined"
-                          sx={{ mt: 1 }}
+                          sx={{ mt: 1 , background:'#2F5D0B', color:'white'}}
                         >
                           View
                         </Button>
@@ -274,13 +284,12 @@ export default function Review() {
           </Button>
         </Box>
       )}
-
-      {/* Action Buttons */}
+      {position === 'admin' && (
       <Box mt={3} display="flex" gap={2} flexWrap="wrap" sx={{ alignItems: 'center', justifyContent: 'center' }}>
         <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
         <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
       </Box>
-
+      )}
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={showDeleteConfirm}
@@ -293,10 +302,12 @@ export default function Review() {
           </DialogContentText>
         </DialogContent>
         <DialogActions >
+          
           <Button onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
           <Button onClick={confirmDelete} color="error" variant="contained">
             Delete
           </Button>
+          
         </DialogActions>
       </Dialog>
     </Box>

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -21,11 +21,73 @@ import SkeletonTotalOrderCard from 'ui-component/cards/Skeleton/EarningCard';
 // assets
 import LocalMallOutlinedIcon from '@mui/icons-material/LocalMallOutlined';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import axios from 'axios';
+import config from 'config';
 
 export default function TotalOrderLineChartCard({ isLoading }) {
   const theme = useTheme();
 
   const [timeValue, setTimeValue] = React.useState(false);
+  const [month, setMonthly] = useState([]);
+  const [year, setYearly] = useState([]);
+const [acptStat, setAcptStat] = useState([]);
+
+
+//sort accepted
+useEffect(() => {
+  axios.get(`${config.baseApi}/request/history`)
+    .then((response) => {
+      const allData = response.data || [];
+      const acceptedData = allData.filter(item => item.request_status === 'accepted');
+      setAcptStat(acceptedData);
+    });
+}, []);
+
+//Fix Date from DB
+const parseCustomDate = (dateStr) => {
+  const cleaned = dateStr.replace(/\s{2,}/g, ' ').trim();
+  const [monthStr, day, year, timeWithAMPM] = cleaned.split(" ");
+  const months = {
+    Jan: "01", Feb: "02", Mar: "03", Apr: "04",
+    May: "05", Jun: "06", Jul: "07", Aug: "08",
+    Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+  };
+  const month = months[monthStr];
+  if (!month) return null;
+  const dayPadded = day.padStart(2, "0");
+  const time = timeWithAMPM.replace(/(AM|PM)/, ' $1');
+
+  const fullDateStr = `${year}-${month}-${dayPadded} ${time}`;
+  return new Date(fullDateStr);
+};
+
+//Display Result
+useEffect(() => {
+  if (acptStat.length > 0) {
+    const sortedByMonth = [...acptStat].sort((a, b) => {
+      const dateA = parseCustomDate(a.updated_at);
+      const dateB = parseCustomDate(b.updated_at);
+
+      if (!dateA || !dateB) return 0;
+      return dateA.getMonth() - dateB.getMonth();
+    });
+    setMonthly(sortedByMonth.length)
+  console.log('MONTH:',sortedByMonth.length)
+
+    const sortedByYear = [...acptStat].sort((a, b) => {
+      const date1 = parseCustomDate(a.updated_at);
+      const date2 = parseCustomDate(b.updated_at);
+
+      if (!date1 || !date2) return 0;
+
+      return date1.getFullYear() - date2.getFullYear();
+    });
+    setYearly(sortedByYear.length);
+     console.log('YEAR:',sortedByYear.length)
+  }
+}, [acptStat]); 
+
+
   const handleChangeTime = (event, newValue) => {
     setTimeValue(newValue);
   };
@@ -116,9 +178,9 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                     <Grid container sx={{ alignItems: 'center' }}>
                       <Grid>
                         {timeValue ? (
-                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$108</Typography>
+                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{month}</Typography>
                         ) : (
-                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$961</Typography>
+                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>{year}</Typography>
                         )}
                       </Grid>
                       <Grid>
@@ -141,7 +203,7 @@ export default function TotalOrderLineChartCard({ isLoading }) {
                             color: 'primary.200'
                           }}
                         >
-                          Total Order
+                          Total Accepted Requests
                         </Typography>
                       </Grid>
                     </Grid>

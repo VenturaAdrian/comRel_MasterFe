@@ -12,7 +12,7 @@ id: 'admin-tools',
       id: 'register-user',
       title: 'Register User',
       type: 'item',
-      url: '/dashboard/default',
+      url: '/register',
       icon: icons.IconUserPlus,
       breadcrumbs: false
     }

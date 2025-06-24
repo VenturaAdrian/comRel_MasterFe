@@ -1,23 +1,28 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-// project imports
 import NavItem from './NavItem';
 import NavGroup from './NavGroup';
-import menuItems from 'menu-items';
+import getMenuItems from 'menu-items'; // ✅ now a function
 
 import { useGetMenuMaster } from 'api/menu';
-
-// ==============================|| SIDEBAR MENU LIST ||============================== //
 
 function MenuList() {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 
   const [selectedID, setSelectedID] = useState('');
+  const [menuItems, setMenuItems] = useState({ items: [] });
+
+  useEffect(() => {
+    const empInfo = JSON.parse(localStorage.getItem('user'));
+    const position = empInfo?.emp_position || '';
+    const items = getMenuItems(position);
+    setMenuItems(items);
+  }, []);
 
   const lastItem = null;
 
@@ -28,13 +33,11 @@ function MenuList() {
   if (lastItem && lastItem < menuItems.items.length) {
     lastItemId = menuItems.items[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
-    remItems = menuItems.items.slice(lastItem - 1, menuItems.items.length).map((item) => ({
+    remItems = menuItems.items.slice(lastItem - 1).map((item) => ({
       title: item.title,
       elements: item.children,
       icon: item.icon,
-      ...(item.url && {
-        url: item.url
-      })
+      ...(item.url && { url: item.url })
     }));
   }
 
@@ -61,6 +64,7 @@ function MenuList() {
             lastItemId={lastItemId}
           />
         );
+
       default:
         return (
           <Typography key={item.id} variant="h6" color="error" align="center">

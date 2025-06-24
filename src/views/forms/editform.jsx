@@ -137,7 +137,7 @@ export default function EditForm() {
   if (!formData) return <Typography>Loading...</Typography>;
 
   return (
-    <Box sx={{ mt: 4, p: 2, backgroundColor: '#93c47d', minHeight: '100vh' }}>
+    <Box sx={{ mt: 4, p: 2, background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)', minHeight: '100vh' }}>
       <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: "auto", mt: 2, mb: 2 }}>
         <Typography variant="h5" mb={2} textAlign="center">
           Edit Request ID: {requestID}

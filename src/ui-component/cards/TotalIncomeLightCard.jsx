@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import config from 'config';
+
 import PropTypes from 'prop-types';
 
 // material-ui
@@ -42,6 +46,22 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
 
 export default function TotalIncomeLightCard({ isLoading, total, icon, label }) {
   const theme = useTheme();
+const [historyData, setHistoryData] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${config.baseApi}/request/history`)
+      .then((response) => {
+        setHistoryData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching history data:', error);
+      });
+  }, []); // Avoid repeated fetches
+
+  // Count how many have status === 'request'
+  const requestCount = historyData.filter(item => item.request_status?.toLowerCase() === 'declined').length;
+
+
 
   return (
     <>
@@ -67,7 +87,7 @@ export default function TotalIncomeLightCard({ isLoading, total, icon, label }) 
                 </ListItemAvatar>
                 <ListItemText
                   sx={{ py: 0, mt: 0.45, mb: 0.45 }}
-                  primary={<Typography variant="h4">${total}k</Typography>}
+                  primary={<Typography variant="h4">{requestCount}</Typography>}
                   secondary={
                     <Typography variant="subtitle2" sx={{ color: 'grey.500', mt: 0.5 }}>
                       {label}

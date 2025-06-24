@@ -4,10 +4,17 @@ import utilities from './utilities';
 import other from './other';
 import admin from './admin';
 
-// ==============================|| MENU ITEMS ||============================== //
+// This is now a function, not a static object
+const getMenuItems = (position = '') => {
+  const items = [dashboard, pages];
 
-const menuItems = {
-  items: [dashboard, pages, admin,utilities, other ]
+  if (position === 'admin') {
+    items.push(admin);
+  }
+
+  items.push(utilities, other);
+
+  return { items };
 };
 
-export default menuItems;
+export default getMenuItems;

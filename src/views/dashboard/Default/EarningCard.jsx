@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import config from 'config';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -17,6 +19,7 @@ import SkeletonEarningCard from 'ui-component/cards/Skeleton/EarningCard';
 
 // assets
 import EarningIcon from 'assets/images/icons/earning.svg';
+import FeedIcon from '@mui/icons-material/Feed';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import GetAppTwoToneIcon from '@mui/icons-material/GetAppOutlined';
@@ -24,10 +27,25 @@ import FileCopyTwoToneIcon from '@mui/icons-material/FileCopyOutlined';
 import PictureAsPdfTwoToneIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import ArchiveTwoToneIcon from '@mui/icons-material/ArchiveOutlined';
 
+
+
 export default function EarningCard({ isLoading }) {
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [historyData, setHistoryData] = useState([]);
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  useEffect(() => {
+    axios.get(`${config.baseApi}/request/history`)
+      .then((response) => {
+        setHistoryData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching history data:', error);
+      });
+  }, []); // Avoid repeated fetches
+
+  // Count how many have status === 'request'
+  const requestCount = historyData.filter(item => item.request_status?.toLowerCase() === 'request').length;
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -88,7 +106,7 @@ export default function EarningCard({ isLoading }) {
                         mt: 1
                       }}
                     >
-                      <CardMedia sx={{ width: 24, height: 24 }} component="img" src={EarningIcon} alt="Notification" />
+                      <FeedIcon sx={{ fontSize: 28, color: 'white' }} />
                     </Avatar>
                   </Grid>
                   <Grid>
@@ -142,7 +160,10 @@ export default function EarningCard({ isLoading }) {
               <Grid>
                 <Grid container sx={{ alignItems: 'center' }}>
                   <Grid>
-                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$500.00</Typography>
+                    {/* Display the count of request statuses here */}
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                      {requestCount}
+                    </Typography>
                   </Grid>
                   <Grid>
                     <Avatar
@@ -166,7 +187,7 @@ export default function EarningCard({ isLoading }) {
                     color: 'secondary.200'
                   }}
                 >
-                  Total Earning
+                  Total Request Forms
                 </Typography>
               </Grid>
             </Grid>
@@ -177,4 +198,6 @@ export default function EarningCard({ isLoading }) {
   );
 }
 
-EarningCard.propTypes = { isLoading: PropTypes.bool };
+EarningCard.propTypes = {
+  isLoading: PropTypes.bool
+};

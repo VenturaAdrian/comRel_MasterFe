@@ -54,7 +54,7 @@ export default function AuthLogin() {
         
       
       localStorage.setItem('status', JSON.stringify([{ id: 0, value: 'Login' }]));
-      window.location.replace(`${config.baseUrl}/comrel/dashboard`);
+      window.location.replace(`${config.baseUrl}/comrel/dashboard/default`);
 
     } else {
       console.warn("Login failed:", response.data.message || "Unknown error");

@@ -9,12 +9,10 @@ import Chip from '@mui/material/Chip';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid2';
-import InputAdornment from '@mui/material/InputAdornment';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
 import Stack from '@mui/material/Stack';
@@ -23,29 +21,27 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 // project imports
-import UpgradePlanCard from './UpgradePlanCard';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import useConfig from 'hooks/useConfig';
 
 // assets
 import User1 from 'assets/images/users/user-round.svg';
-import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
-
-// ==============================|| PROFILE MENU ||============================== //
+import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 
 export default function ProfileSection() {
   const theme = useTheme();
   const { borderRadius } = useConfig();
+
   const [sdm, setSdm] = useState(true);
-  const [value, setValue] = useState('');
   const [notification, setNotification] = useState(false);
   const [selectedIndex] = useState(-1);
   const [open, setOpen] = useState(false);
 
-  /**
-   * anchorRef is used on different components and specifying one type leads to other components throwing an error
-   * */
+  const [username, setUsername] = useState('');
+  const [role, setRole] = useState('');
+  const [position, setPosition] = useState('');
+
   const anchorRef = useRef(null);
 
   const handleToggle = () => {
@@ -56,7 +52,6 @@ export default function ProfileSection() {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
-
     setOpen(false);
   };
 
@@ -65,15 +60,22 @@ export default function ProfileSection() {
     if (prevOpen.current === true && open === false) {
       anchorRef.current.focus();
     }
-
     prevOpen.current = open;
   }, [open]);
 
+  useEffect(() => {
+    const userdata = JSON.parse(localStorage.getItem('user'));
+    if (userdata) {
+      setUsername(userdata.user_name);
+      setRole(userdata.role);
+      
+    }
+  }, []);
 
   const HandleLogOut = () => {
-      localStorage.removeItem('user');
-            window.location.replace('/');
-  }
+    localStorage.removeItem('user');
+    window.location.replace('/');
+  };
 
   return (
     <>
@@ -137,27 +139,13 @@ export default function ProfileSection() {
                         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                           <Typography variant="h4">Good Morning,</Typography>
                           <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            Johne Doe
+                            {username}
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">Project Admin</Typography>
+                        <Typography variant="subtitle2">
+                          {role}
+                        </Typography>
                       </Stack>
-                      <OutlinedInput
-                        sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                        id="input-search-profile"
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        placeholder="Search profile options"
-                        startAdornment={
-                          <InputAdornment position="start">
-                            <IconSearch stroke={1.5} size="16px" />
-                          </InputAdornment>
-                        }
-                        aria-describedby="search-helper-text"
-                        inputProps={{
-                          'aria-label': 'weight'
-                        }}
-                      />
                       <Divider />
                     </Box>
                     <Box
@@ -170,8 +158,6 @@ export default function ProfileSection() {
                         '&::-webkit-scrollbar': { width: 5 }
                       }}
                     >
-                      <UpgradePlanCard />
-                      <Divider />
                       <Card sx={{ bgcolor: 'primary.light', my: 2 }}>
                         <CardContent>
                           <Grid container spacing={3} direction="column">
