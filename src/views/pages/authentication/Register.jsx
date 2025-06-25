@@ -29,7 +29,7 @@ export default function Register() {
 
   return (
     <AuthWrapper1>
-      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
+      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh', mt:6 }}>
         <Grid item xs={12}>
           <Grid
             container
@@ -77,22 +77,9 @@ export default function Register() {
                     <AuthRegister onRegisterSuccess={handleRegisterSuccess} />
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
 
-                  <Grid item xs={12}>
-                    <Grid container direction="column" alignItems="center">
-                      <Typography
-                        component={Link}
-                        to="/dashboard/default"
-                        variant="subtitle1"
-                        sx={{ textDecoration: 'none' }}
-                      >
-                        Already have an account?
-                      </Typography>
-                    </Grid>
-                  </Grid>
+
+
                 </Grid>
               </AuthCardWrapper>
             </Grid>

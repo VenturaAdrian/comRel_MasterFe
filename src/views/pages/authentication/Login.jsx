@@ -23,13 +23,13 @@ export default function Login() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const theme = useTheme();
   return (
-    <AuthWrapper1>
+    <AuthWrapper1 >
       <Grid container direction="column" sx={{ justifyContent: 'flex-end', minHeight: '100vh' }}>
         <Grid size={12}>
           <Grid container sx={{ justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 68px)' }}>
             <Grid sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
               <AuthCardWrapper>
-                <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'center' }}>
+                <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'center'}}>
                   <Grid sx={{ mb: 3 }}>
                     <Link to="#" aria-label="logo">
                       <Logo />

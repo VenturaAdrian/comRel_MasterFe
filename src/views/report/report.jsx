@@ -4,54 +4,115 @@ import config from "config";
 import Chart from "react-apexcharts";
 import {
   Box,
-  Typography,
+  Grid,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
 } from "@mui/material";
 
 export default function Reports() {
   const [data, setData] = useState([]);
-  const [sortBy, setSortBy] = useState("request_status");
+  const [xAxisOption, setXAxisOption] = useState("request_status");
+  const [yAxisOption, setYAxisOption] = useState("comm_Act");
+  const [dateMode, setDateMode] = useState("month");
+
   const [chartData, setChartData] = useState({
-    options: { chart: { id: "request-summary" }, xaxis: { categories: [] } },
+    options: { chart: { id: "summary" }, xaxis: { categories: [] } },
     series: [],
   });
 
-  const groupData = (groupKey) => {
+  const formatDateKey = (dateStr) => {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const week = String(getWeekNumber(date)).padStart(2, "0");
+
+    if (dateMode === "year") return `${year}`;
+    if (dateMode === "month") return `${year}-${month}`;
+    if (dateMode === "week") return `${year}-W${week}`;
+    return dateStr;
+  };
+
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return (
+      1 +
+      Math.round(
+        ((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7
+      )
+    );
+  };
+
+  const getAxisLabel = (key) => {
+    switch (key) {
+      case "request_status":
+        return "Request Status";
+      case "comm_Act":
+        return "Activity";
+      case "comm_Area":
+        return "Barangay";
+      default:
+        return key;
+    }
+  };
+
+  const groupData = () => {
     const grouped = {};
 
     data.forEach((item) => {
-      const date = new Date(item.date_Time).toLocaleDateString(); // normalize date
-      const subGroup = item[groupKey] || "Unknown";
+      const dateKey = formatDateKey(item.date_Time);
+      const xVal = item[xAxisOption] || "Unknown";
+      const yVal = item[yAxisOption] || "Unknown";
 
-      if (!grouped[date]) grouped[date] = {};
-      if (!grouped[date][subGroup]) grouped[date][subGroup] = 0;
+      const groupKey = `${dateKey}_${xVal}`;
 
-      grouped[date][subGroup]++;
+      if (!grouped[groupKey]) grouped[groupKey] = {};
+      if (!grouped[groupKey][yVal]) grouped[groupKey][yVal] = 0;
+
+      grouped[groupKey][yVal]++;
     });
 
-    const categories = Object.keys(grouped); // x-axis = dates
-    const subGroupKeys = new Set();
+    const categories = [...new Set(data.map((item) => {
+      const dateKey = formatDateKey(item.date_Time);
+      return `${dateKey}_${item[xAxisOption] || "Unknown"}`;
+    }))].sort();
 
-    // collect all unique subgroup keys
-    Object.values(grouped).forEach((subGroupObj) => {
-      Object.keys(subGroupObj).forEach((key) => subGroupKeys.add(key));
-    });
+    const yKeys = new Set();
+    Object.values(grouped).forEach(obj =>
+      Object.keys(obj).forEach(k => yKeys.add(k))
+    );
 
-    const series = Array.from(subGroupKeys).map((key) => ({
-      name: key,
-      data: categories.map((date) => grouped[date][key] || 0),
+    const series = Array.from(yKeys).map(yVal => ({
+      name: yVal,
+      data: categories.map(cat => grouped[cat]?.[yVal] || 0),
     }));
 
     setChartData({
       options: {
-        chart: { id: "request-summary", stacked: true },
-        xaxis: { categories },
+        chart: {
+          id: "summary",
+          stacked: true,
+        },
+        xaxis: {
+          categories,
+          labels: {
+            rotate: -45,
+          },
+        },
         title: {
-          text: `Requests by ${groupKey.replace("_", " ")} per Date`,
+          text: `Grouped by ${getAxisLabel(xAxisOption)} and ${getAxisLabel(yAxisOption)} (${dateMode})`,
           align: "center",
+        },
+        tooltip: {
+          shared: true,
+          intersect: false,
+        },
+        legend: {
+          position: "bottom",
         },
       },
       series,
@@ -61,93 +122,71 @@ export default function Reports() {
   useEffect(() => {
     axios
       .get(`${config.baseApi1}/request/history`)
-      .then((response) => {
-        setData(response.data);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+      .then((res) => setData(res.data || []))
+      .catch((err) => console.error("Fetch Error:", err));
   }, []);
 
   useEffect(() => {
     if (data.length > 0) {
-      groupData(sortBy);
+      groupData();
     }
-  }, [data, sortBy]);
-
-  const thStyle = {
-    border: "1px solid #ddd",
-    padding: "8px",
-    backgroundColor: "#f2f2f2",
-  };
-  const tdStyle = { border: "1px solid #ddd", padding: "8px" };
-
-  const handleBack = () => {
-    window.location.replace(`${config.baseUrl}/comrel/dashboard`);
-  }
+  }, [data, xAxisOption, yAxisOption, dateMode]);
 
   return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" mb={3}>
-        <button onClick={handleBack} style={{ marginRight: '20px' }}>Back</button>
-        Reports
-      </Typography>
+    <Box sx={{ p: 3 , mt:6}}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>X-Axis</InputLabel>
+            <Select
+              value={xAxisOption}
+              onChange={(e) => setXAxisOption(e.target.value)}
+              label="X-Axis"
+            >
+              <MenuItem value="request_status">Request Status</MenuItem>
+              <MenuItem value="comm_Act">Activity</MenuItem>
+              <MenuItem value="comm_Area">Barangay</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
 
-      {/* Sort/Group Filter */}
-      <FormControl sx={{ minWidth: 200, mb: 2 }}>
-        <InputLabel>Group By</InputLabel>
-        <Select
-          value={sortBy}
-          label="Group By"
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <MenuItem value="request_status">Status</MenuItem>
-          <MenuItem value="comm_Act">Activity</MenuItem>
-          <MenuItem value="comm_Venue">Venue</MenuItem>
-        </Select>
-      </FormControl>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>Y-Axis</InputLabel>
+            <Select
+              value={yAxisOption}
+              onChange={(e) => setYAxisOption(e.target.value)}
+              label="Y-Axis"
+            >
+              <MenuItem value="comm_Act">Activity</MenuItem>
+              <MenuItem value="comm_Area">Barangay</MenuItem>
+              <MenuItem value="request_status">Request Status</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
 
-      {/* Chart */}
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel>Date Mode</InputLabel>
+            <Select
+              value={dateMode}
+              onChange={(e) => setDateMode(e.target.value)}
+              label="Date Mode"
+            >
+              <MenuItem value="week">Week</MenuItem>
+              <MenuItem value="month">Month</MenuItem>
+              <MenuItem value="year">Year</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+
       <Chart
         options={chartData.options}
         series={chartData.series}
         type="bar"
-        height={350}
+        height={450}
       />
-
-      {/* Table */}
-      <table style={{ borderCollapse: "collapse", width: "100%", marginTop: "30px" }}>
-        <thead>
-          <tr>
-            <th style={thStyle}>ID</th>
-            <th style={thStyle}>Status</th>
-            <th style={thStyle}>Activity</th>
-            <th style={thStyle}>Venue</th>
-            <th style={thStyle}>Date/Time</th>
-            <th style={thStyle}>Area</th>
-            <th style={thStyle}>Guest</th>
-            <th style={thStyle}>Docs</th>
-            <th style={thStyle}>Emps</th>
-            <th style={thStyle}>Beneficiaries</th>
-            <th style={thStyle}>Created By</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, index) => (
-            <tr key={index}>
-              <td style={tdStyle}>{row.request_id}</td>
-              <td style={tdStyle}>{row.request_status}</td>
-              <td style={tdStyle}>{row.comm_Act}</td>
-              <td style={tdStyle}>{row.comm_Venue}</td>
-              <td style={tdStyle}>{row.date_Time}</td>
-              <td style={tdStyle}>{row.comm_Area}</td>
-              <td style={tdStyle}>{row.comm_Guest}</td>
-              <td style={tdStyle}>{row.comm_Docs}</td>
-              <td style={tdStyle}>{row.comm_Emps}</td>
-              <td style={tdStyle}>{row.comm_Benef}</td>
-              <td style={tdStyle}>{row.created_by}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </Box>
   );
 }

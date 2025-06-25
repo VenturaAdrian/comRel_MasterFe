@@ -126,6 +126,7 @@ export default function EditForm() {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
+        window.location.replace('/comrel/history')
         alert("Request updated successfully!");
       })
       .catch((err) => {

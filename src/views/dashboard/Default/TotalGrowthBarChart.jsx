@@ -47,6 +47,19 @@ export default function Reports() {
     );
   };
 
+  const getAxisLabel = (key) => {
+    switch (key) {
+      case "request_status":
+        return "Request Status";
+      case "comm_Act":
+        return "Activity";
+      case "comm_Area":
+        return "Barangay";
+      default:
+        return key;
+    }
+  };
+
   const groupData = () => {
     const grouped = {};
 
@@ -91,7 +104,7 @@ export default function Reports() {
           },
         },
         title: {
-          text: `Grouped by ${xAxisOption} and ${yAxisOption} (${dateMode})`,
+          text: `Grouped by ${getAxisLabel(xAxisOption)} and ${getAxisLabel(yAxisOption)} (${dateMode})`,
           align: "center",
         },
         tooltip: {

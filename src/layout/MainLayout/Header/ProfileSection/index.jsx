@@ -27,6 +27,8 @@ import useConfig from 'hooks/useConfig';
 
 // assets
 import User1 from 'assets/images/users/user-round.svg';
+import Profile from 'assets/images/users/profile.svg';
+import AdminPic from 'assets/images/users/1.svg';
 import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 
 export default function ProfileSection() {
@@ -41,6 +43,7 @@ export default function ProfileSection() {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('');
   const [position, setPosition] = useState('');
+
 
   const anchorRef = useRef(null);
 
@@ -66,9 +69,11 @@ export default function ProfileSection() {
   useEffect(() => {
     const userdata = JSON.parse(localStorage.getItem('user'));
     if (userdata) {
-      setUsername(userdata.user_name);
+      const fullname = `${userdata.first_name}` +" "+ `${userdata.last_name}`;
+      setUsername(fullname);
+
       setRole(userdata.role);
-      
+      setPosition(userdata.emp_position)
     }
   }, []);
 
@@ -91,7 +96,7 @@ export default function ProfileSection() {
         }}
         icon={
           <Avatar
-            src={User1}
+            src={Profile}
             alt="user-images"
             sx={{
               ...theme.typography.mediumAvatar,
@@ -137,13 +142,13 @@ export default function ProfileSection() {
                     <Box sx={{ p: 2, pb: 0 }}>
                       <Stack>
                         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                          <Typography variant="h4">Good Morning,</Typography>
+                          <Typography variant="h4">Good Day,</Typography>
                           <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                             {username}
                           </Typography>
                         </Stack>
                         <Typography variant="subtitle2">
-                          {role}
+                          {position} {role} 
                         </Typography>
                       </Stack>
                       <Divider />
@@ -158,43 +163,7 @@ export default function ProfileSection() {
                         '&::-webkit-scrollbar': { width: 5 }
                       }}
                     >
-                      <Card sx={{ bgcolor: 'primary.light', my: 2 }}>
-                        <CardContent>
-                          <Grid container spacing={3} direction="column">
-                            <Grid>
-                              <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Grid>
-                                  <Typography variant="subtitle1">Start DND Mode</Typography>
-                                </Grid>
-                                <Grid>
-                                  <Switch
-                                    color="primary"
-                                    checked={sdm}
-                                    onChange={(e) => setSdm(e.target.checked)}
-                                    name="sdm"
-                                    size="small"
-                                  />
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                            <Grid>
-                              <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Grid>
-                                  <Typography variant="subtitle1">Allow Notifications</Typography>
-                                </Grid>
-                                <Grid>
-                                  <Switch
-                                    checked={notification}
-                                    onChange={(e) => setNotification(e.target.checked)}
-                                    name="sdm"
-                                    size="small"
-                                  />
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
+                      
                       <Divider />
                       <List
                         component="nav"
@@ -206,12 +175,6 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 0}>
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="20px" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
-                        </ListItemButton>
                         <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} selected={selectedIndex === 1}>
                           <ListItemIcon>
                             <IconUser stroke={1.5} size="20px" />
@@ -220,16 +183,7 @@ export default function ProfileSection() {
                             primary={
                               <Grid container spacing={1} sx={{ justifyContent: 'space-between' }}>
                                 <Grid>
-                                  <Typography variant="body2">Social Profile</Typography>
-                                </Grid>
-                                <Grid>
-                                  <Chip
-                                    label="02"
-                                    variant="filled"
-                                    size="small"
-                                    color="warning"
-                                    sx={{ '& .MuiChip-label': { mt: 0.25 } }}
-                                  />
+                                  <Typography variant="body2">Profile</Typography>
                                 </Grid>
                               </Grid>
                             }

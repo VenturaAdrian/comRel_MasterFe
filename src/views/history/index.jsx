@@ -76,23 +76,30 @@ export default function History() {
   };
 
   return (
-    <Box sx={{ p: 6, mt: 6, background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        py: 6,
+        px: { xs: 2, md: 6 },
+        background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)'
+      }}
+    >
       {/* Filter & Sort Controls */}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
-        <FormControl sx={{ minWidth: 200}}>
-          <InputLabel  sx={{ color: '#1b4332' }}>Status</InputLabel>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ color: '#1b4332' }}>Status</InputLabel>
           <Select
             value={filterStatus}
             label="Status"
             onChange={(e) => setFilterStatus(e.target.value)}
             sx={{
-              color: ' #1b4332', // text color
+              color: '#1b4332',
               '.MuiOutlinedInput-notchedOutline': {
-                borderColor: ' #1b4332',
-                borderWidth:'2px' // border color
+                borderColor: '#1b4332',
+                borderWidth: '2px'
               },
               '& .MuiSvgIcon-root': {
-                color: '#1b4332', // dropdown arrow color
+                color: '#1b4332'
               }
             }}
           >
@@ -107,120 +114,132 @@ export default function History() {
 
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel sx={{ color: '#1b4332' }}>Sort By Date</InputLabel>
-  <Select
-    value={sortOrder}
-    label="Sort By Date"
-    onChange={(e) => setSortOrder(e.target.value)}
-    sx={{
-      color: '#1b4332', // text color
-      '.MuiOutlinedInput-notchedOutline': {
-        borderColor: '#1b4332',
-        borderWidth:'2px' // border color
-      },
-      
-      '& .MuiSvgIcon-root': {
-        color: '#1b4332', // dropdown arrow color
-      }
-    }}
-  >
+          <Select
+            value={sortOrder}
+            label="Sort By Date"
+            onChange={(e) => setSortOrder(e.target.value)}
+            sx={{
+              color: '#1b4332',
+              '.MuiOutlinedInput-notchedOutline': {
+                borderColor: '#1b4332',
+                borderWidth: '2px'
+              },
+              '& .MuiSvgIcon-root': {
+                color: '#1b4332'
+              }
+            }}
+          >
             <MenuItem value="newest">Newest First</MenuItem>
             <MenuItem value="oldest">Oldest First</MenuItem>
           </Select>
         </FormControl>
       </Stack>
 
-      {/* Card List */}
-      <Grid container spacing={2}>
-        {filteredData.map((item) => {
-          const preview = getFirstFilePreview(item.comm_Docs, item.request_id);
+      {/* Display message if no data */}
+      {filteredData.length === 0 ? (
+        <Box textAlign="center" mt={4}>
+          <Typography variant="h6" color="white">
+            No {filterStatus} data found
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {filteredData.map((item) => {
+            const preview = getFirstFilePreview(item.comm_Docs, item.request_id);
 
-          return (
-            <Grid item xs={12} md={6} key={item.request_id} >
-              <Card sx={{ display: "flex", background: 'linear-gradient( #e0e0e0,rgb(220, 219, 219))', border: '2px solid #274e13' }}>
-                <Box
+            return (
+              <Grid item xs={12} md={6} key={item.request_id}>
+                <Card
                   sx={{
-                    width: 150,
-                    height: 150,
-                    m: 2,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "#f0f0f0",
-                    borderRadius: 1,
-                    overflow: "hidden"
+                    background: 'linear-gradient(#e0e0e0, rgb(220, 219, 219))',
+                    border: '2px solid #274e13',
+                    borderRadius: 2,
+                    boxShadow: 3
                   }}
                 >
-                  {preview ? (
-                    preview.isImage ? (
-                      <img
-                        src={preview.fileUrl}
-                        alt="Doc Preview"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = preview.fallbackUrl;
-                        }}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
+                  <Box
+                    sx={{
+                      width: 150,
+                      height: 150,
+                      m: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: "#f0f0f0",
+                      borderRadius: 1,
+                      overflow: "hidden"
+                    }}
+                  >
+                    {preview ? (
+                      preview.isImage ? (
+                        <img
+                          src={preview.fileUrl}
+                          alt="Doc Preview"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = preview.fallbackUrl;
+                          }}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="body2">{preview.fileExt} File</Typography>
+                          <Button
+                            href={preview.fileUrl}
+                            target="_blank"
+                            size="small"
+                            variant="outlined"
+                            sx={{ mt: 1 }}
+                          >
+                            View
+                          </Button>
+                        </Box>
+                      )
                     ) : (
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="body2">{preview.fileExt} File</Typography>
-                        <Button
-                          href={preview.fileUrl}
-                          target="_blank"
-                          size="small"
-                          variant="outlined"
-                          sx={{ mt: 1 }}
-                        >
-                          View
-                        </Button>
-                      </Box>
-                    )
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">No File</Typography>
-                  )}
-                </Box>
-
-                <CardContent>
-                  <Typography><strong>Request ID:</strong> {item.request_id}</Typography>
-                  <Typography><strong>Status:</strong> {item.request_status}</Typography>
-                  <Typography><strong>Community Area/Barangay:</strong> {item.comm_Area}</Typography>
-                  <Typography><strong>Community Activity:</strong> {item.comm_Act}</Typography>
-                  <Typography>
-                    <strong>Date/Time:</strong>{" "}
-                    {new Date(item.date_Time).toLocaleString("en-PH", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                      hour12: true
-                    })}
-                  </Typography>
-
-                  <Box mt={1}>
-                    {(userPosition !== "encoder" || item.request_status === "reviewed") && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleView(item)}
-                          sx={{ mr: 1 }}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => handleReview(item)}
-                        >
-                          Review
-                        </Button>
-                      </>
+                      <Typography variant="body2" color="text.secondary">No File</Typography>
                     )}
                   </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+
+                  <CardContent
+                    sx={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Box>
+                      <Typography><strong>Request ID:</strong> {item.request_id}</Typography>
+                      <Typography><strong>Status:</strong> {item.request_status}</Typography>
+                      <Typography><strong>Community Area/Barangay:</strong> {item.comm_Area}</Typography>
+                      <Typography><strong>Community Activity:</strong> {item.comm_Act}</Typography>
+                      <Typography>
+                        <strong>Date/Time:</strong>{" "}
+                        {new Date(item.date_Time).toLocaleString("en-PH", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                          hour12: true
+                        })}
+                      </Typography>
+                    </Box>
+
+                    <Box mt={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleReview(item)}
+                      >
+                        Review
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      )}
     </Box>
   );
 }

@@ -30,6 +30,7 @@ export default function Review() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [position, setPosition] = useState('')
+  const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +56,10 @@ export default function Review() {
     if (empInfo?.user_name) 
       setCurrentUser(empInfo.user_name);
     setPosition(empInfo.emp_position)
+    setRole(empInfo.role)
+
+    console.log('Position',position , 'Role', role)
+
   }, [requestID]);
 
   const handleCommentSubmit = async (e) => {
@@ -111,8 +116,9 @@ export default function Review() {
         request_id: requestID,
         currentUser
       });
-
+      window.location.replace('/comrel/history')
       alert(res.data.message || 'Request accepted successfully.');
+      
 
       const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
         params: { id: requestID }
@@ -129,7 +135,7 @@ export default function Review() {
     window.location.replace(`/comrel/edit?${params.toString()}`);
   };
 
-  
+  const employees = 'comrelofficer'|| 'comrelthree'|| 'comreldh'
 
   return (
     <Box sx={{ p: 3  ,mt:4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
@@ -138,16 +144,16 @@ export default function Review() {
       {formData ? (
         <Card variant="outlined" sx={{ mb: 3, position: 'relative',  }}>
           {/* Top-right buttons */}
-          {(position === 'admin' || status === 'reviewed') && (
-  <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
-    <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
-      <EditIcon />
-    </IconButton>
-    <IconButton onClick={handleDelete} sx={{ color: 'red' }}>
-      <DeleteIcon />
-    </IconButton>
-  </Box>
-)}
+          {(position ===  employees || status === 'reviewed' || role === 'admin') && (
+            <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
+              <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
+                <EditIcon />
+              </IconButton>
+              <IconButton onClick={handleDelete} sx={{ color: 'red' }}>
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          )}
 
           <CardContent sx={{background: 'linear-gradient(rgb(253, 253, 253),rgb(222, 220, 220) )'}}>
             <Grid size={8}  > 
@@ -284,7 +290,7 @@ export default function Review() {
           </Button>
         </Box>
       )}
-      {position === 'admin' && (
+      {(role === 'admin' || position === employees) && (
       <Box mt={3} display="flex" gap={2} flexWrap="wrap" sx={{ alignItems: 'center', justifyContent: 'center' }}>
         <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
         <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
