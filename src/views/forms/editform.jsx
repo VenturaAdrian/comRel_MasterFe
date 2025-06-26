@@ -36,7 +36,9 @@ export default function EditForm() {
   const [createdby, setCreatedBy] = useState("");
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
-
+  const [status, setStatus] = useState('');
+  const [info, setInfo] = useState('');
+  const [position, setPosition] = useState('');
   useEffect(() => {
     if (requestID) {
       axios
@@ -45,6 +47,7 @@ export default function EditForm() {
         })
         .then((response) => {
           const data = response.data || {};
+          
           setFormData({
             ...data,
             comm_Area: data.comm_Area?.split(",").map((x) => x.trim()) || [],
@@ -52,17 +55,23 @@ export default function EditForm() {
             comm_Emps: data.comm_Emps?.split(",").map((x) => x.trim()) || [],
             comm_Benef: data.comm_Benef?.split(",").map((x) => x.trim()) || [],
           });
+          setInfo(data.request_status);
         })
         .catch((error) => {
           console.error("Error fetching request data:", error);
         });
+
+        
+        
     }
 
     const empInfo = JSON.parse(localStorage.getItem("user"));
     if (empInfo?.user_name) {
       setCreatedBy(empInfo.user_name);
+      setPosition(empInfo.emp_position);
     }
-  }, [requestID]);
+    
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,6 +112,17 @@ export default function EditForm() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
+
+    // ✅ Determine status before FormData
+  let updatedStatus = status;
+  if (position === 'encoder') {
+    updatedStatus = 'request';
+  } else if (position === 'comrelofficer') {
+    updatedStatus = 'reviewed';
+  } else if (position === 'comrelthree' || position === 'comreldh') {
+    updatedStatus = info; // fallback to existing status from DB
+  }
+
     const data = new FormData();
 
     data.append("request_id", requestID);
@@ -114,12 +134,15 @@ export default function EditForm() {
     data.append("comm_Emps", formData.comm_Emps.join(", "));
     data.append("comm_Benef", formData.comm_Benef.join(", "));
     data.append("created_by", createdby);
+    data.append("request_status", updatedStatus)
 
     if (selectedFiles.length > 0) {
       selectedFiles.forEach(file => data.append("comm_Docs", file));
     } else {
       data.append("existingFileName", formData.comm_Docs);
     }
+
+    
 
     axios.post(`${config.baseApi1}/request/updateform`, data, {
         headers: { "Content-Type": "multipart/form-data" },

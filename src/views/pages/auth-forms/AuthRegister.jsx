@@ -10,10 +10,13 @@ import {
   InputAdornment,
   IconButton,
   Button,
-  Snackbar,
-  Alert,
   Select,
-  MenuItem
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -28,12 +31,15 @@ export default function AuthRegister() {
   const [empRole, setEmpRole] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMsg, setSnackbarMsg] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event) => event.preventDefault();
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
 
   const Register = async (e) => {
     e.preventDefault();
@@ -47,21 +53,19 @@ export default function AuthRegister() {
       !password ||
       !confirmPassword
     ) {
-      setSnackbarMsg("All fields are required.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      setDialogMessage("All fields are required.");
+      setDialogOpen(true);
       return;
     }
 
     if (password !== confirmPassword) {
-      setSnackbarMsg("Passwords do not match.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      setDialogMessage("Passwords do not match.");
+      setDialogOpen(true);
       return;
     }
 
     try {
-      await axios.post(`${config.baseApi}/users/register`, {
+      await axios.post(`${config.baseApi1}/request/register`, {
         emp_firstname: empFirstName,
         emp_lastname: empLastName,
         user_name: userName,
@@ -69,29 +73,27 @@ export default function AuthRegister() {
         pass_word: password,
         emp_role: empRole
       });
+      
 
-      setSnackbarMsg("Registered successfully!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
-
-      // Reset form
-      setEmpFirstName('');
-      setEmpLastName('');
-      setUserName('');
-      setEmpPosition('');
-      setEmpRole('');
-      setPassword('');
-      setConfirmPassword('');
-
-      // Optional: redirect or reload after success
-      // setTimeout(() => {
-      //   window.location.href = "/login";
-      // }, 4000);
+      
     } catch (error) {
-      setSnackbarMsg("Registration failed. Please try again.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      setDialogMessage("Registration failed. Please try again.");
+      setDialogOpen(true);
     }
+        setDialogMessage("Registered successfully!");
+        setDialogOpen(true);
+
+        // Reset form
+        setEmpFirstName('');
+        setEmpLastName('');
+        setUserName('');
+        setEmpPosition('');
+        setEmpRole('');
+        setPassword('');
+        setConfirmPassword('');
+        
+      window.location.reload();
+
   };
 
   return (
@@ -188,22 +190,16 @@ export default function AuthRegister() {
         </Grid>
       </form>
 
-      {/* Snackbar Feedback */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMsg}
-        </Alert>
-      </Snackbar>
+      {/* Dialog for messages */}
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle>Registration</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{dialogMessage}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>OK</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

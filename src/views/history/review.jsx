@@ -67,14 +67,78 @@ export default function Review() {
   fetchData();
 }, [requestID]);
 
+const show = () => {
+  if (!formData) return false;
+  if (role === 'admin') return true;
+  if (status === 'reviewed' && position === 'encoder') return false;
+  if (status === 'request' && position === 'encoder') return false;
+
+  if (status === 'request' && position === 'comrelofficer') return true;
+  if (status === 'reviewed' && position === 'comrelofficer') return true;
+  const { comrelofficer, comrelthree, comreldh } = formData;
+
+  // ======== comrelofficer logic ========
+  if (position === 'comrelofficer') {
+    if (comrelofficer === true && comrelthree === true && comreldh === true||
+      (comrelofficer === false && comrelthree === true && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === true) ||
+      (comrelofficer === true && comrelthree === false && comreldh === true) 
+
+    ){
+      return false;
+    }
+    else if (comrelofficer === true && comrelthree === false && comreldh === false ||
+      (comrelofficer === false && comrelthree === false && comreldh === false) 
+  ) {
+      return true;
+    }
+
+  }
+
+  // ======== comrelthree logic ========
+  if (position === 'comrelthree') {
+    if (comrelthree === true && comrelofficer === true && comreldh === true ||
+      (comrelofficer === false && comrelthree === false && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === false) ||
+      (comrelofficer === false && comrelthree === false && comreldh === true) 
+    ){
+      return false;
+    }
+    else if (comrelthree === true && comrelofficer === true && comreldh === false  ||
+              (comrelofficer === true && comrelthree === false && comreldh === false)
+    ) {
+      return true
+    }; 
+
+  }
+
+  // ======== comreldh logic ========
+  if (position === 'comreldh') {
+    if (comrelofficer === false && comrelthree === false && comreldh === false ||
+      (comrelofficer === true && comrelthree === false && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === false)
+    ){
+      return false;
+    }else if (comrelofficer === true && comrelthree === true && comreldh === true ||
+            (comrelofficer === true && comrelthree === true && comreldh === false)
+    ){
+      return true;
+    }
+    
+  }
+
+  return false;
+}
 
 
 const canShowEditDelete = () => {
   if (role === 'admin') return true; // Admin can always see buttons
   if (!formData) return false;
-  if (status === 'reviewed') return true;
-  
+  if (status === 'reviewed' && position === 'encoder') return true;
+  if (status === 'request' && position === 'encoder') return false;
 
+  if (status === 'request' && position === 'comrelofficer') return true;
+  if (status === 'reviewed' && position === 'comrelofficer') return true;
   const { comrelofficer, comrelthree, comreldh } = formData;
 
   // ======== comrelofficer logic ========
@@ -147,8 +211,8 @@ const canShowEditDelete = () => {
       setComments(res.data);
 
       await axios.post(`${config.baseApi1}/request/comment-decline`, {
-        request_status: 'reviewed',
         request_id: requestID,
+        emp_position: position,
         currentUser
       });
 
@@ -162,11 +226,7 @@ const canShowEditDelete = () => {
   };
 
   const handleDecline = () => {
-    const res = axios.post(`${config.baseApi1}/request/decline`, {
-        request_id: requestID,
-        emp_position: position,
-        currentUser
-      });
+  
 
 
     setShowComments(true);
@@ -366,7 +426,7 @@ const canShowEditDelete = () => {
         </Box>
       )}
 
-      {canShowEditDelete() && (
+      {show()  && (
         <Stack mt={3} direction="row" spacing={2} justifyContent="center">
           <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
           <Button variant="contained" color="primary" onClick={handleAccept} disabled={accepted}>Accept</Button>

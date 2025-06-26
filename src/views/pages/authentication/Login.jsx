@@ -40,7 +40,7 @@ export default function Login() {
                       <Grid>
                         <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
                           <Typography gutterBottom variant={downMD ? 'h3' : 'h2'} sx={{ color: 'primary.dark' }}>
-                            Hi, Welcome Back
+                            Together for our community
                           </Typography>
                           <Typography variant="caption" sx={{ fontSize: '16px', textAlign: { xs: 'center', md: 'inherit' } }}>
                             Enter your credentials to continue
