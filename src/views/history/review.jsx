@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import config from 'config';
 import {
@@ -16,54 +16,125 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Stack,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import Grid from '@mui/material/Grid2';
+
 export default function Review() {
   const requestID = new URLSearchParams(window.location.search).get('id');
   const [formData, setFormData] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [currentUser, setCurrentUser] = useState('');
+  const [position, setPosition] = useState('');
+  const [role, setRole] = useState('');
+  const [status, setStatus] = useState('');
+  const [accepted, setAccepted] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const [position, setPosition] = useState('')
-  const [role, setRole] = useState('');
-  const [status, setStatus] = useState('');
+  const commentRef = useRef(null);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
-          params: { id: requestID }
-        });
-        const data = requestRes.data
-        setFormData(data);
-        setStatus(data.request_status)
-        
-        const commentsRes = await axios.get(`${config.baseApi1}/request/comment/${requestID}`);
-        setComments(commentsRes.data);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-      }
-
-    };
-
-    if (requestID) fetchData();
-
     const empInfo = JSON.parse(localStorage.getItem('user'));
-    if (empInfo?.user_name) 
-      setCurrentUser(empInfo.user_name);
-    setPosition(empInfo.emp_position)
-    setRole(empInfo.role)
+    if (empInfo?.user_name) setCurrentUser(empInfo.user_name);
+    setPosition(empInfo?.emp_position || '');
+    setRole(empInfo?.role || '');
+  }, []);
 
-    console.log('Position',position , 'Role', role)
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
+        params: { id: requestID }
+      });
 
-  }, [requestID]);
+      const data = requestRes.data;
+
+      setFormData(data);
+      console.log(data)
+      setStatus(data.request_status);
+      
+
+      const commentsRes = await axios.get(`${config.baseApi1}/request/comment/${requestID}`);
+      setComments(commentsRes.data);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+    }
+  };
+
+  fetchData();
+}, [requestID]);
+
+
+
+const canShowEditDelete = () => {
+  if (role === 'admin') return true; // Admin can always see buttons
+  if (!formData) return false;
+  if (status === 'reviewed') return true;
+  
+
+  const { comrelofficer, comrelthree, comreldh } = formData;
+
+  // ======== comrelofficer logic ========
+  if (position === 'comrelofficer') {
+    if (comrelofficer === true && comrelthree === true && comreldh === true||
+      (comrelofficer === false && comrelthree === true && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === true) ||
+      (comrelofficer === true && comrelthree === false && comreldh === true) 
+
+    ){
+      return false;
+    }
+    else if (comrelofficer === true && comrelthree === false && comreldh === false ||
+      (comrelofficer === false && comrelthree === false && comreldh === false) 
+  ) {
+      return true;
+    }
+
+  }
+
+  // ======== comrelthree logic ========
+  if (position === 'comrelthree') {
+    if (comrelthree === true && comrelofficer === true && comreldh === true ||
+      (comrelofficer === false && comrelthree === false && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === false) ||
+      (comrelofficer === false && comrelthree === false && comreldh === true) 
+    ){
+      return false;
+    }
+    else if (comrelthree === true && comrelofficer === true && comreldh === false  ||
+              (comrelofficer === true && comrelthree === false && comreldh === false)
+    ) {
+      return true
+    }; 
+
+  }
+
+  // ======== comreldh logic ========
+  if (position === 'comreldh') {
+    if (comrelofficer === false && comrelthree === false && comreldh === false ||
+      (comrelofficer === true && comrelthree === false && comreldh === false) ||
+      (comrelofficer === false && comrelthree === true && comreldh === false)
+    ){
+      return false;
+    }else if (comrelofficer === true && comrelthree === true && comreldh === true ||
+            (comrelofficer === true && comrelthree === true && comreldh === false)
+    ){
+      return true;
+    }
+    
+  }
+
+  return false;
+};
+
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
+    if (!comment.trim()) return;
+
     try {
       await axios.post(`${config.baseApi1}/request/comment`, {
         comment,
@@ -81,16 +152,27 @@ export default function Review() {
         currentUser
       });
 
-      const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
+      const updatedReq = await axios.get(`${config.baseApi1}/request/editform`, {
         params: { id: requestID }
       });
-      setFormData(requestRes.data);
+      setFormData(updatedReq.data);
     } catch (err) {
       console.error('Error submitting comment:', err);
     }
   };
 
-  const handleDecline = () => setShowComments(true);
+  const handleDecline = () => {
+    const res = axios.post(`${config.baseApi1}/request/decline`, {
+        request_id: requestID,
+        emp_position: position,
+        currentUser
+      });
+
+
+    setShowComments(true);
+    setTimeout(() => commentRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  };
+
   const handleDelete = () => setShowDeleteConfirm(true);
 
   const confirmDelete = async () => {
@@ -112,18 +194,17 @@ export default function Review() {
   const handleAccept = async () => {
     try {
       const res = await axios.post(`${config.baseApi1}/request/accept`, {
-        request_status: 'accepted',
         request_id: requestID,
+        emp_position: position,
         currentUser
       });
-      window.location.replace('/comrel/history')
       alert(res.data.message || 'Request accepted successfully.');
-      
+      setAccepted(true);
 
-      const requestRes = await axios.get(`${config.baseApi1}/request/editform`, {
+      const updatedReq = await axios.get(`${config.baseApi1}/request/editform`, {
         params: { id: requestID }
       });
-      setFormData(requestRes.data);
+      setFormData(updatedReq.data);
     } catch (err) {
       console.error('Failed to accept request:', err);
       alert('Failed to accept this request.');
@@ -135,16 +216,11 @@ export default function Review() {
     window.location.replace(`/comrel/edit?${params.toString()}`);
   };
 
-  const employees = 'comrelofficer'|| 'comrelthree'|| 'comreldh'
-
   return (
-    <Box sx={{ p: 3  ,mt:4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
-      
-
+    <Box sx={{ p: 3, mt: 4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
       {formData ? (
-        <Card variant="outlined" sx={{ mb: 3, position: 'relative',  }}>
-          {/* Top-right buttons */}
-          {(position ===  employees || status === 'reviewed' || role === 'admin') && (
+        <Card variant="outlined" sx={{ mb: 3, position: 'relative' }}>
+          {canShowEditDelete() && (
             <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
               <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
                 <EditIcon />
@@ -155,13 +231,12 @@ export default function Review() {
             </Box>
           )}
 
-          <CardContent sx={{background: 'linear-gradient(rgb(253, 253, 253),rgb(222, 220, 220) )'}}>
-            <Grid size={8}  > 
+          <CardContent sx={{ background: 'linear-gradient(rgb(253, 253, 253),rgb(222, 220, 220))' }}>
             <Typography textAlign="center" fontWeight="bold" fontSize={24}>
               Request ID: {formData.request_id}
             </Typography>
-            <Divider sx={{ my: 2, borderColor:'rgb(157, 156, 156)' }} />
-    </Grid>
+            <Divider sx={{ my: 2, borderColor: 'rgb(157, 156, 156)' }} />
+
             <Typography><strong>Status:</strong> {formData.request_status}</Typography>
             <Typography><strong>Community:</strong> {formData.comm_Area}</Typography>
             <Typography><strong>Activity:</strong> {formData.comm_Act}</Typography>
@@ -186,8 +261,7 @@ export default function Review() {
                         key={index}
                         sx={{
                           width: 'calc(25% - 16px)',
-                          border: '2px solid #ccc',
-                          borderColor:'#2F5D0B',
+                          border: '2px solid #2F5D0B',
                           p: 1,
                           borderRadius: 1,
                           textAlign: 'center',
@@ -236,7 +310,7 @@ export default function Review() {
                           target="_blank"
                           rel="noopener noreferrer"
                           variant="outlined"
-                          sx={{ mt: 1 , background:'#2F5D0B', color:'white'}}
+                          sx={{ mt: 1, background: '#2F5D0B', color: 'white' }}
                         >
                           View
                         </Button>
@@ -272,7 +346,7 @@ export default function Review() {
       </Box>
 
       {showComments && (
-        <Box mt={2}>
+        <Box mt={2} ref={commentRef}>
           <TextField
             label="Comment / Feedback"
             fullWidth
@@ -285,35 +359,30 @@ export default function Review() {
             variant="contained"
             onClick={handleCommentSubmit}
             sx={{ mt: 1 }}
+            disabled={!comment.trim()}
           >
             Submit Comment
           </Button>
         </Box>
       )}
-      {(role === 'admin' || position === employees) && (
-      <Box mt={3} display="flex" gap={2} flexWrap="wrap" sx={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
-        <Button variant="contained" color="primary" onClick={handleAccept}>Accept</Button>
-      </Box>
+
+      {canShowEditDelete() && (
+        <Stack mt={3} direction="row" spacing={2} justifyContent="center">
+          <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
+          <Button variant="contained" color="primary" onClick={handleAccept} disabled={accepted}>Accept</Button>
+        </Stack>
       )}
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-      >
+
+      <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete this request? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions >
-          
+        <DialogActions>
           <Button onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            Delete
-          </Button>
-          
+          <Button onClick={confirmDelete} color="error" variant="contained">Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

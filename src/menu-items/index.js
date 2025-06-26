@@ -4,11 +4,20 @@ import utilities from './utilities';
 import other from './other';
 import admin from './admin';
 
-// This is now a function, not a static object
-const getMenuItems = (position = '') => {
+const getMenuItems = () => {
+  const checkUserString = localStorage.getItem("user");
+  let checkUser;
+
+  try {
+    checkUser = JSON.parse(checkUserString);
+    console.log('ROLE:', checkUser?.role); 
+  } catch (error) {
+    console.error('Error parsing user from localStorage:', error);
+  }
+
   const items = [dashboard, pages];
 
-  if (position === 'admin') {
+  if (checkUser?.role === 'admin') {
     items.push(admin);
   }
 

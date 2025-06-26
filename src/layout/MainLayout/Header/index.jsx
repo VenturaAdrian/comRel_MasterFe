@@ -26,9 +26,9 @@ export default function Header() {
         justifyContent: 'space-between',
         width: '100%',
         px: 2,
-        py: 1,
+        py: 0.5,
         bgcolor: 'background.paper',
-        borderBottom: `1px solid ${theme.palette.divider}`
+
       }}
     >
       {/* Left section: Menu + Logo */}

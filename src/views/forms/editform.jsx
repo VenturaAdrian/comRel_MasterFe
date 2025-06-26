@@ -121,8 +121,7 @@ export default function EditForm() {
       data.append("existingFileName", formData.comm_Docs);
     }
 
-    axios
-      .post(`${config.baseApi1}/request/updateform`, data, {
+    axios.post(`${config.baseApi1}/request/updateform`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {

@@ -25,7 +25,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <Grid container spacing={gridSpacing} sx={{mt:6}}>
+    <Grid container spacing={gridSpacing} sx={{mt:10}}>
       <Grid size={12}>
         <Grid container spacing={gridSpacing}>
           <Grid size={{ lg: 4, md: 6, sm: 6, xs: 12 }}>
