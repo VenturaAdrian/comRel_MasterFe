@@ -1,7 +1,8 @@
-import {IconUserPlus} from '@tabler/icons-react'
+import {IconUserPlus, IconUserCog} from '@tabler/icons-react'
 
 const icons = {
-  IconUserPlus
+  IconUserPlus,
+  IconUserCog
 };
 const admin ={
 id: 'admin-tools',
@@ -14,6 +15,14 @@ id: 'admin-tools',
       type: 'item',
       url: '/register',
       icon: icons.IconUserPlus,
+      breadcrumbs: false
+    },
+    {
+      id: 'user-panel',
+      title: 'View Users',
+      type: 'item',
+      url: '/userpanel',
+      icon: icons.IconUserCog,
       breadcrumbs: false
     }
   ]

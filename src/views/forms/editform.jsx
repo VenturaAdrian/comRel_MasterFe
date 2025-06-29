@@ -134,6 +134,7 @@ export default function EditForm() {
     data.append("comm_Emps", formData.comm_Emps.join(", "));
     data.append("comm_Benef", formData.comm_Benef.join(", "));
     data.append("created_by", createdby);
+    data.append("emp_position", position);
     data.append("request_status", updatedStatus)
 
     if (selectedFiles.length > 0) {
@@ -148,7 +149,7 @@ export default function EditForm() {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
-        window.location.replace('/comrel/history')
+        window.location.replace('/comrel/pending')
         alert("Request updated successfully!");
       })
       .catch((err) => {

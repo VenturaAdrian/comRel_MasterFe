@@ -3,6 +3,7 @@ import {
   IconDeviceIpadPlus, 
   IconHistory, 
   IconClipboardText,
+ IconFileReport,
   IconBrandFacebook 
 } from '@tabler/icons-react';
 
@@ -13,7 +14,9 @@ const icons = {
   IconDeviceIpadPlus,
   IconHistory,
   IconClipboardText,
-  IconBrandFacebook
+  IconBrandFacebook,
+ IconFileReport,
+
 };
 
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
@@ -30,6 +33,14 @@ const pages = {
       type: 'item',
       url: '/addform',
       icon: icons.IconDeviceIpadPlus,
+      breadcrumbs: false
+    },
+    {
+      id: 'pending',
+      title: 'Pending Requests',
+      type: 'item',
+      url: '/pending',
+      icon: icons. IconFileReport,
       breadcrumbs: false
     },
     {
@@ -55,7 +66,8 @@ const pages = {
       url: '/review-post',
       icon: icons.IconBrandFacebook,
       breadcrumbs: false
-    }
+    },
+    
 
   ]
 };

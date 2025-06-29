@@ -67,6 +67,9 @@ export default function Review() {
   fetchData();
 }, [requestID]);
 
+
+
+
 const show = () => {
   if (!formData) return false;
   if (role === 'admin') return true;
@@ -130,11 +133,24 @@ const show = () => {
   return false;
 }
 
+const onlyencoder = () => {
+  if(position === 'comrelofficer' ||
+    position ==='comrelthree' ||
+    position === 'comreldh'
+  ){
+    return false;
+  } 
+  if(role === 'admin'||( position === 'encoder' && status === 'reviewed')){
+    return true;
+  }
+  
+}
+
 
 const canShowEditDelete = () => {
   if (role === 'admin') return true; // Admin can always see buttons
   if (!formData) return false;
-  if (status === 'reviewed' && position === 'encoder') return true;
+  if (status === 'reviewed' && position === 'encoder') return false;
   if (status === 'request' && position === 'encoder') return false;
 
   if (status === 'request' && position === 'comrelofficer') return true;
@@ -226,9 +242,6 @@ const canShowEditDelete = () => {
   };
 
   const handleDecline = () => {
-  
-
-
     setShowComments(true);
     setTimeout(() => commentRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
@@ -252,24 +265,27 @@ const canShowEditDelete = () => {
   };
 
   const handleAccept = async () => {
-    try {
-      const res = await axios.post(`${config.baseApi1}/request/accept`, {
-        request_id: requestID,
-        emp_position: position,
-        currentUser
-      });
-      alert(res.data.message || 'Request accepted successfully.');
-      setAccepted(true);
+  try {
+    const res = await axios.post(`${config.baseApi1}/request/accept`, {
+      request_id: requestID,
+      emp_position: position,
+      currentUser
+    });
 
-      const updatedReq = await axios.get(`${config.baseApi1}/request/editform`, {
-        params: { id: requestID }
-      });
-      setFormData(updatedReq.data);
-    } catch (err) {
-      console.error('Failed to accept request:', err);
-      alert('Failed to accept this request.');
-    }
-  };
+    alert(res.data.message || 'Request accepted successfully.');
+    setAccepted(true);
+
+    const updatedReq = await axios.get(`${config.baseApi1}/request/editform`, {
+      params: { id: requestID }
+    });
+
+    setFormData(updatedReq.data);
+  } catch (err) {
+    console.error('Accept request error:', err);
+    alert('Failed to accept request.');
+  }
+};
+
 
   const handleEdit = () => {
     const params = new URLSearchParams({ id: requestID });
@@ -277,10 +293,10 @@ const canShowEditDelete = () => {
   };
 
   return (
-    <Box sx={{ p: 3, mt: 4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
+    <Box sx={{ minHeight: '100vh',p: 3, mt: 4, background: 'linear-gradient(to bottom, #ffdc73, #bf9b30)', borderRadius: 2, boxShadow: 3 }}>
       {formData ? (
         <Card variant="outlined" sx={{ mb: 3, position: 'relative' }}>
-          {canShowEditDelete() && (
+          {onlyencoder() && (
             <Box sx={{ position: 'absolute', top: 15, right: 15 }}>
               <IconButton onClick={handleEdit} sx={{ color: 'green' }}>
                 <EditIcon />
@@ -366,7 +382,12 @@ const canShowEditDelete = () => {
                         </Typography>
                         <Button
                           size="small"
-                          href={fileUrl}
+                          href={fileUrl || fallbackUrl}
+                          onError={(e)=>{
+                            e.target.onerror = null;
+                              e.target.src = fallbackUrl;
+                          }}
+                          alt={`Document ${index + 1}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           variant="outlined"
@@ -426,7 +447,7 @@ const canShowEditDelete = () => {
         </Box>
       )}
 
-      {show()  && (
+      {canShowEditDelete()  && (
         <Stack mt={3} direction="row" spacing={2} justifyContent="center">
           <Button variant="contained" color="error" onClick={handleDecline}>Decline</Button>
           <Button variant="contained" color="primary" onClick={handleAccept} disabled={accepted}>Accept</Button>

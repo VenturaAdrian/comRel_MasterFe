@@ -15,7 +15,7 @@ import {
   Stack
 } from "@mui/material";
 
-export default function History() {
+export default function Pending() {
   const [historyData, setHistoryData] = useState([]);
   const [userPosition, setUserPosition] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -32,34 +32,38 @@ export default function History() {
       });
 
     const empInfo = JSON.parse(localStorage.getItem("user"));
-    setUserPosition(empInfo.emp_position);
+    setUserPosition(empInfo?.emp_position || "");
   }, []);
 
-  const handleView = (item) => {
-    const params = new URLSearchParams({ id: item.request_id });
-    window.location.replace(`/comrel/viewform?${params.toString()}`);
-  };
+  useEffect(() => {
+    if (userPosition === 'encoder') {
+      setFilterStatus('Reviewed');
+    } else if (userPosition === 'comrelofficer') {
+      setFilterStatus('Request');
+    } else if (userPosition === 'comrelthree') {
+      setFilterStatus('Pending review for ComrelIII');
+    } else if (userPosition === 'comreldh') {
+      setFilterStatus('Pending review for Comrel DH');
+    }
+  }, [userPosition]);
 
   const handleReview = (item) => {
     const params = new URLSearchParams({ id: item.request_id });
     window.location.replace(`/comrel/review?${params.toString()}`);
   };
 
-  // Filter
   let filteredData = filterStatus
     ? historyData.filter(item =>
         item.request_status.toLowerCase() === filterStatus.toLowerCase()
       )
     : [...historyData];
 
-  // Sort
   filteredData.sort((a, b) => {
     const dateA = new Date(a.date_Time);
     const dateB = new Date(b.date_Time);
     return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
-  // Helper to get 1 displayable file (image or first file)
   const getFirstFilePreview = (docsString = "", requestId) => {
     const files = docsString.split(",").map(f => f.trim()).filter(Boolean);
     if (!files.length) return null;
@@ -79,39 +83,14 @@ export default function History() {
     <Box
       sx={{
         minHeight: '100vh',
-        mt:6,
+        mt: 6,
         py: 6,
         px: { xs: 2, md: 6 },
         background: 'linear-gradient(to bottom, #93c47d, #6aa84f, #2F5D0B)'
       }}
     >
-      {/* Filter & Sort Controls */}
+      {/* Only Sort By Date Control */}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={2}>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel sx={{ color: '#1b4332' }}>Status</InputLabel>
-          <Select
-            value={filterStatus}
-            label="Status"
-            onChange={(e) => setFilterStatus(e.target.value)}
-            sx={{
-              color: '#1b4332',
-              '.MuiOutlinedInput-notchedOutline': {
-                borderColor: '#1b4332',
-                borderWidth: '2px'
-              },
-              '& .MuiSvgIcon-root': {
-                color: '#1b4332'
-              }
-            }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Request">Request</MenuItem>
-            <MenuItem value="Reviewed">Reviewed</MenuItem>
-            <MenuItem value="Declined">Declined</MenuItem>
-            <MenuItem value="Accepted">Accepted</MenuItem>
-          </Select>
-        </FormControl>
-
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel sx={{ color: '#1b4332' }}>Sort By Date</InputLabel>
           <Select

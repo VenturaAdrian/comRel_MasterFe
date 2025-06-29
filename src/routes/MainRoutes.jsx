@@ -3,6 +3,8 @@ import { Navigate } from 'react-router-dom';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import { elements } from 'chart.js';
+
 
 
 
@@ -21,9 +23,10 @@ const Reports = Loadable(lazy(() => import('../views/report/report')));
 const ReviewPost = Loadable(lazy(() => import('../views/preview-post')));
 const Review = Loadable(lazy(() => import('../views/history/review')));
 const EditForm = Loadable(lazy(() => import('../views/forms/editform')));
+const Pending = Loadable(lazy(() => import('../views/history/pending')));
 const Register = Loadable(lazy(() => import('../views/pages/authentication/Register')));
-
-
+const UserPanel = Loadable(lazy(() => import('../views/pages/admin/userspanel')));
+const UserEdit = Loadable(lazy(() => import('../views/pages/admin/useredit')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 const RoleAccess = () => {
@@ -96,6 +99,18 @@ const MainRoutes = {
     {
       path:'register',
       element: <Register/>
+    },
+    {
+      path: 'pending',
+      element: <Pending/>
+    },
+    {
+      path: 'userpanel',
+      element: <UserPanel/>
+    },
+    {
+      path:'usereditpanel',
+      element: <UserEdit/>
     }
   ]
 };
