@@ -273,6 +273,7 @@ const canShowEditDelete = () => {
     });
 
     alert(res.data.message || 'Request accepted successfully.');
+    window.location.replace('/comrel/pending')
     setAccepted(true);
 
     const updatedReq = await axios.get(`${config.baseApi1}/request/editform`, {

@@ -58,7 +58,7 @@ export default function Header() {
 
       {/* Right section: Notification + Profile */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <NotificationSection />
+        {/* <NotificationSection /> */}
         <ProfileSection />
       </Box>
     </Box>

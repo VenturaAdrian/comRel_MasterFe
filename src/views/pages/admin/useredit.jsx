@@ -27,7 +27,7 @@ export default function UserEdit() {
   const userId = params.get("id");
 
   const [username, setUsername] = useState("");
-
+  const [originalData, setOriginalData] = useState({});
   const [formData, setFormData] = useState({
     emp_firstname: "",
     emp_lastname: "",
@@ -49,6 +49,7 @@ export default function UserEdit() {
           params: { id: userId }
         });
         setFormData(response.data);
+        setOriginalData(response.data);
       } catch (err) {
         console.error("Error fetching user:", err);
       }
@@ -64,8 +65,29 @@ export default function UserEdit() {
     }));
   };
 
+  const getChangesLog = () => {
+    const changes = [];
+
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== originalData[key]) {
+        changes.push(
+          `Changed ${key} from '${originalData[key] || ""}' to '${formData[key] || ""}'`
+        );
+      }
+    });
+
+    return changes.join(", ");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const changesLog = getChangesLog();
+    if (!changesLog) {
+      alert("No changes were made.");
+      return;
+    }
+
     try {
       await axios.post(`${config.baseApi}/request/update-user`, {
         id_master: userId,
@@ -75,20 +97,12 @@ export default function UserEdit() {
         emp_position: formData.emp_position,
         emp_role: formData.emp_role,
         pass_word: formData.pass_word,
-        created_by: username
+        created_by: username,
+        changes_log: changesLog
       });
 
-      console.log(`Updated ${formData.user_name} successfully!`);
-
-      setFormData({
-        emp_firstname: "",
-        emp_lastname: "",
-        emp_position: "",
-        user_name: "",
-        emp_role: "",
-        pass_word: ""
-      });
-      window.location.replace('/comrel/userpanel')
+      alert(`Updated ${formData.user_name} successfully!`);
+      window.location.replace('/comrel/userpanel');
     } catch (err) {
       console.error("Error updating user:", err);
       alert("Update failed.");

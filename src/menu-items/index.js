@@ -22,7 +22,7 @@ const getMenuItems = () => {
     items.push(admin);
   }
 
-  items.push(utilities, other);
+  // items.push(utilities, other);
 
   return { items };
 };

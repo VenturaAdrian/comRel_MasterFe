@@ -27,6 +27,7 @@ const Pending = Loadable(lazy(() => import('../views/history/pending')));
 const Register = Loadable(lazy(() => import('../views/pages/authentication/Register')));
 const UserPanel = Loadable(lazy(() => import('../views/pages/admin/userspanel')));
 const UserEdit = Loadable(lazy(() => import('../views/pages/admin/useredit')));
+const UserLogs = Loadable(lazy(() => import('../views/pages/admin/userslogs')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 const RoleAccess = () => {
@@ -111,6 +112,9 @@ const MainRoutes = {
     {
       path:'usereditpanel',
       element: <UserEdit/>
+    },{
+      path:'userlogs',
+      element: <UserLogs/>
     }
   ]
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import config from 'config';
 import {
@@ -25,17 +25,35 @@ export default function AuthRegister() {
   const [empFirstName, setEmpFirstName] = useState('');
   const [empLastName, setEmpLastName] = useState('');
   const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
   const [empPosition, setEmpPosition] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [empRole, setEmpRole] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const [createdby, setCreatedBy] = useState('');
+  const [firstname, setFirstName] = useState('');
+  const [lastname, setLastName] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
 
+
+
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event) => event.preventDefault();
+
+  useEffect(() => {
+  const empInfo = JSON.parse(localStorage.getItem('user'));
+  console.log("user object from localStorage:", empInfo);
+
+  if (empInfo?.user_name) {
+    setCreatedBy(empInfo.user_name);
+    setFirstName(empInfo.first_name);
+    setLastName(empInfo.last_name);
+    
+  }
+}, []);
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -44,16 +62,25 @@ export default function AuthRegister() {
   const Register = async (e) => {
     e.preventDefault();
 
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (
       !empFirstName.trim() ||
       !empLastName.trim() ||
       !userName.trim() ||
+      !email.trim() ||
       !empPosition ||
       !empRole ||
       !password ||
       !confirmPassword
     ) {
       setDialogMessage("All fields are required.");
+      setDialogOpen(true);
+      return;
+    }
+
+    if (!emailPattern.test(email)) {
+      setDialogMessage("Please enter a valid email address.");
       setDialogOpen(true);
       return;
     }
@@ -69,31 +96,34 @@ export default function AuthRegister() {
         emp_firstname: empFirstName,
         emp_lastname: empLastName,
         user_name: userName,
+        emp_email: email,
+        updated_by: createdby,
         emp_position: empPosition,
         pass_word: password,
-        emp_role: empRole
+        emp_role: empRole,
+        first_name: firstname,
+        last_name: lastname
       });
-      
 
-      
+      setDialogMessage("Registered successfully!");
+      setDialogOpen(true);
+
+      // Reset form
+      setEmpFirstName('');
+      setEmpLastName('');
+      setUserName('');
+      setEmail('');
+      setEmpPosition('');
+      setEmpRole('');
+      setPassword('');
+      setConfirmPassword('');
+
+      window.location.reload();
+
     } catch (error) {
       setDialogMessage("Registration failed. Please try again.");
       setDialogOpen(true);
     }
-        setDialogMessage("Registered successfully!");
-        setDialogOpen(true);
-
-        // Reset form
-        setEmpFirstName('');
-        setEmpLastName('');
-        setUserName('');
-        setEmpPosition('');
-        setEmpRole('');
-        setPassword('');
-        setConfirmPassword('');
-        
-      window.location.reload();
-
   };
 
   return (
@@ -108,6 +138,18 @@ export default function AuthRegister() {
           </Grid>
           <Grid item xs={12}>
             <TextField fullWidth label="Username" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={!!email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
+              helperText={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "Invalid email format" : ""}
+            />
           </Grid>
 
           <Grid item xs={12}>
@@ -142,7 +184,6 @@ export default function AuthRegister() {
             </FormControl>
           </Grid>
 
-          {/* Password Field */}
           <Grid item xs={12}>
             <FormControl fullWidth>
               <InputLabel>Password</InputLabel>
@@ -162,7 +203,6 @@ export default function AuthRegister() {
             </FormControl>
           </Grid>
 
-          {/* Confirm Password Field */}
           <Grid item xs={12}>
             <FormControl fullWidth>
               <InputLabel>Confirm Password</InputLabel>
@@ -190,7 +230,6 @@ export default function AuthRegister() {
         </Grid>
       </form>
 
-      {/* Dialog for messages */}
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogTitle>Registration</DialogTitle>
         <DialogContent>

@@ -4,28 +4,44 @@ import config from 'config';
 import {
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Typography,
-  Button,
-  Stack
+  Button, Stack
 } from '@mui/material';
 
 export default function UserPanel() {
   const [users, setUsers] = useState([]);
 
-
   useEffect(() => {
-    axios.get(`${config.baseApi}/users/users`) // Adjust to your backend URL
-      .then(res => {
-        setUsers(res.data);
-      })
-      .catch(err => {
-        console.error("Error fetching users:", err);
-      });
+    fetchUsers();
   }, []);
 
-  const handleEdit =(id) => {
-    const params = new URLSearchParams({id});
+  const fetchUsers = () => {
+    axios.get(`${config.baseApi}/users/users`)
+      .then(res => setUsers(res.data))
+      .catch(err => console.error("Error fetching users:", err));
+  };
+
+  const handleEdit = (id) => {
+    const params = new URLSearchParams({ id });
     window.location.replace(`/comrel/usereditpanel?${params.toString()}`);
-  }
+  };
+
+  const handleDelete = async (id) => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+const user_name = userData?.user_name || 'unknown';
+
+    if (window.confirm("Are you sure you want to permanently delete this user?")) {
+      try {
+        await axios.delete(`${config.baseApi}/users/delete/${id}`, {
+          params: { updated_by: user_name }
+        });
+
+        setUsers(prev => prev.filter(user => user.id_master !== id));
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        alert("Failed to delete user");
+      }
+    }
+  };
 
   return (
     <div style={{ padding: 20 }}>
@@ -59,10 +75,10 @@ export default function UserPanel() {
                 <TableCell>{user.updated_at ? new Date(user.updated_at).toLocaleString() : ''}</TableCell>
                 <TableCell>{user.is_active ? 'Yes' : 'No'}</TableCell>
                 <TableCell>
-                    <Stack direction="row" spacing={2}>
-                        <Button onClick={() => handleEdit(user.id_master)} variant="contained">Edit</Button>
-                        <Button variant="contained" color="error">Delete</Button>
-                    </Stack>
+                  <Stack direction="row" spacing={2}>
+                    <Button onClick={() => handleEdit(user.id_master)} variant="contained">Edit</Button>
+                    <Button onClick={() => handleDelete(user.id_master)} variant="contained" color="error">Delete</Button>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

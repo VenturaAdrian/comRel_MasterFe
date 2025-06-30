@@ -24,6 +24,14 @@ id: 'admin-tools',
       url: '/userpanel',
       icon: icons.IconUserCog,
       breadcrumbs: false
+    },
+    {
+      id: 'user-logs',
+      title: 'User Logs',
+      type: 'item',
+      url: '/userlogs',
+      icon: icons.IconUserCog,
+      breadcrumbs: false
     }
   ]
 }

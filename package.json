@@ -16,6 +16,7 @@
     "axios": "^1.10.0",
     "chart.js": "^4.5.0",
     "config": "^4.0.0",
+    "dayjs": "^1.11.13",
     "framer-motion": "11.12.0",
     "lodash-es": "4.17.21",
     "material-ui-popup-state": "5.3.1",
