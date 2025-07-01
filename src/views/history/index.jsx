@@ -21,24 +21,21 @@ export default function History() {
   const [filterStatus, setFilterStatus] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
 
-  useEffect(() => {
-    axios
-      .get(`${config.baseApi1}/request/history`)
-      .then((response) => {
-        setHistoryData(response.data);
-      })
-      .catch((error) => {
-        console.error("ERROR FETCHING FE:", error);
-      });
+ useEffect(() => {
+  axios
+    .get(`${config.baseApi1}/request/history`)
+    .then((response) => {
+      const activeRequests = response.data.filter(item => item.is_active === true); 
+      setHistoryData(activeRequests);
+      console.log(historyData)
+    })
+    .catch((error) => {
+      console.error("ERROR FETCHING FE:", error);
+    });
 
-    const empInfo = JSON.parse(localStorage.getItem("user"));
-    setUserPosition(empInfo.emp_position);
-  }, []);
-
-  const handleView = (item) => {
-    const params = new URLSearchParams({ id: item.request_id });
-    window.location.replace(`/comrel/viewform?${params.toString()}`);
-  };
+  const empInfo = JSON.parse(localStorage.getItem("user"));
+  setUserPosition(empInfo?.emp_position || "");
+}, []);
 
   const handleReview = (item) => {
     const params = new URLSearchParams({ id: item.request_id });

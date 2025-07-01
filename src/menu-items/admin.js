@@ -32,6 +32,14 @@ id: 'admin-tools',
       url: '/userlogs',
       icon: icons.IconUserCog,
       breadcrumbs: false
+    },
+    {
+      id: 'request-logs',
+      title: 'Request Logs',
+      type: 'item',
+      url: '/request-logs',
+      icon: icons.IconUserCog,
+      breadcrumbs: false
     }
   ]
 }

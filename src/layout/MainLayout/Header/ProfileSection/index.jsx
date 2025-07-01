@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import config from 'config';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -78,6 +80,13 @@ export default function ProfileSection() {
   }, []);
 
   const HandleLogOut = () => {
+    const empInfo = JSON.parse(localStorage.getItem('user'));
+
+    axios.post(`${config.baseApi}/users/isactivelogout`,{
+      id_master: empInfo.id_master,
+      is_active: 0
+    })
+    
     localStorage.removeItem('user');
     window.location.replace('/');
   };

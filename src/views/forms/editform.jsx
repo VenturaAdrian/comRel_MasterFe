@@ -27,11 +27,22 @@ const activityOptions = [
   'Rescue', 'Rehabilitation', 'Ayuda'
 ];
 
+const categoryOptions = [
+  '1 - No Poverty', '2 - Zero Hunger', '3 - Good Health and Well-being',
+  '4 - Quality Education', '5 - Gender Equality', '6 - Clean Water and Sanitation',
+  '7 - Affordable and Clean Energy', '8 - Decent Work and Economic Growth',
+  '9 - Industry, Innovation and Infrastructure', '10 - Reduced Inequality',
+  '11 - Sustainable Cities and Communities', '12 - Responsible Consumption and Production',
+  '13 - Climate Action', '14 - Life Below Water', '15 - Life on Land',
+  '16 - Peace, Justice and Strong Institutions', '17 - Partnerships for the Goals'
+];
+
 export default function EditForm() {
   const params = new URLSearchParams(window.location.search);
   const requestID = params.get("id");
 
   const [formData, setFormData] = useState(null);
+  const [originalData, setOriginalData] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [createdby, setCreatedBy] = useState("");
   const [errors, setErrors] = useState({});
@@ -39,30 +50,26 @@ export default function EditForm() {
   const [status, setStatus] = useState('');
   const [info, setInfo] = useState('');
   const [position, setPosition] = useState('');
+
   useEffect(() => {
     if (requestID) {
-      axios
-        .get(`${config.baseApi1}/request/editform`, {
-          params: { id: requestID }
-        })
-        .then((response) => {
-          const data = response.data || {};
-          
-          setFormData({
-            ...data,
-            comm_Area: data.comm_Area?.split(",").map((x) => x.trim()) || [],
-            comm_Guest: data.comm_Guest?.split(",").map((x) => x.trim()) || [],
-            comm_Emps: data.comm_Emps?.split(",").map((x) => x.trim()) || [],
-            comm_Benef: data.comm_Benef?.split(",").map((x) => x.trim()) || [],
-          });
-          setInfo(data.request_status);
-        })
-        .catch((error) => {
-          console.error("Error fetching request data:", error);
-        });
-
-        
-        
+      axios.get(`${config.baseApi1}/request/editform`, {
+        params: { id: requestID }
+      }).then((response) => {
+        const data = response.data || {};
+        const preparedData = {
+          ...data,
+          comm_Area: data.comm_Area?.split(",").map((x) => x.trim()) || [],
+          comm_Guest: data.comm_Guest?.split(",").map((x) => x.trim()) || [],
+          comm_Emps: data.comm_Emps?.split(",").map((x) => x.trim()) || [],
+          comm_Benef: data.comm_Benef?.split(",").map((x) => x.trim()) || []
+        };
+        setFormData(preparedData);
+        setOriginalData(data.comm_Docs);
+        setInfo(data.request_status);
+      }).catch((error) => {
+        console.error("Error fetching request data:", error);
+      });
     }
 
     const empInfo = JSON.parse(localStorage.getItem("user"));
@@ -70,7 +77,6 @@ export default function EditForm() {
       setCreatedBy(empInfo.user_name);
       setPosition(empInfo.emp_position);
     }
-    
   }, []);
 
   const handleChange = (e) => {
@@ -89,10 +95,8 @@ export default function EditForm() {
     }
   };
 
-  const handleRemoveFile = (indexToRemove) => {
-    setSelectedFiles((prevFiles) =>
-      prevFiles.filter((_, index) => index !== indexToRemove)
-    );
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const validateFields = () => {
@@ -104,7 +108,35 @@ export default function EditForm() {
     if (!formData.comm_Guest || formData.comm_Guest.length === 0) newErrors.comm_Guest = true;
     if (!formData.comm_Emps || formData.comm_Emps.length === 0) newErrors.comm_Emps = true;
     if (!formData.comm_Benef || formData.comm_Benef.length === 0) newErrors.comm_Benef = true;
+    if (!formData.comm_Category) newErrors.comm_Category = true;
+    if (!formData.comm_Desc) newErrors.comm_Desc = true;
     return newErrors;
+  };
+
+  const detectChanges = () => {
+    const changes = [];
+    const keys = [
+      "comm_Area", "comm_Act", "date_Time", "comm_Venue",
+      "comm_Guest", "comm_Emps", "comm_Benef",
+      "comm_Category", "comm_Desc"
+    ];
+
+    keys.forEach((key) => {
+      const [oldVal] = Array.isArray(formData[key]) ? formData[key].join(", ") : formData[key];
+      const [newVal] = Array.isArray(formData[key]) ? formData[key].join(", ") : formData[key];
+      if (oldVal !== newVal) {
+        changes.push(`Changed ${key} from "${oldVal}" to "${newVal}"`);
+      }
+    });
+
+    // ✅ Track file changes
+    if (selectedFiles.length > 0) {    
+      const newFileNames = selectedFiles.map(file => file.name);
+      const oldFileNames = originalData
+      changes.push(`Changed comm_Docs from "${oldFileNames}" to "${newFileNames}"`);
+    }
+
+    return changes.join("; ");
   };
 
   const handleSave = () => {
@@ -112,19 +144,16 @@ export default function EditForm() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-
-    // Determine status before FormData
-  let updatedStatus = status;
-  if (position === 'encoder') {
-    updatedStatus = 'request';
-  } else if (position === 'comrelofficer') {
-    updatedStatus = 'reviewed';
-  } else if (position === 'comrelthree' || position === 'comreldh') {
-    updatedStatus = info; // fallback to existing status from DB
-  }
+    let updatedStatus = status;
+    if (position === 'encoder') {
+      updatedStatus = 'request';
+    } else if (position === 'comrelofficer') {
+      updatedStatus = 'reviewed';
+    } else if (position === 'comrelthree' || position === 'comreldh') {
+      updatedStatus = info;
+    }
 
     const data = new FormData();
-
     data.append("request_id", requestID);
     data.append("comm_Area", formData.comm_Area.join(", "));
     data.append("comm_Act", formData.comm_Act);
@@ -133,9 +162,13 @@ export default function EditForm() {
     data.append("comm_Guest", formData.comm_Guest.join(", "));
     data.append("comm_Emps", formData.comm_Emps.join(", "));
     data.append("comm_Benef", formData.comm_Benef.join(", "));
+    data.append("comm_Category", formData.comm_Category);
+    data.append("comm_Desc", formData.comm_Desc);
     data.append("created_by", createdby);
     data.append("emp_position", position);
-    data.append("request_status", updatedStatus)
+    data.append("request_status", updatedStatus);
+
+    data.append("changes_made", detectChanges());
 
     if (selectedFiles.length > 0) {
       selectedFiles.forEach(file => data.append("comm_Docs", file));
@@ -143,19 +176,17 @@ export default function EditForm() {
       data.append("existingFileName", formData.comm_Docs);
     }
 
-    
-
     axios.post(`${config.baseApi1}/request/updateform`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then(() => {
-        window.location.replace('/comrel/pending')
-        alert("Request updated successfully!");
-      })
-      .catch((err) => {
-        console.error("Update error:", err);
-        alert("Failed to update request.");
-      });
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then(() => {
+      window.location.replace('/comrel/pending');
+      alert("Request updated successfully!");
+    })
+    .catch((err) => {
+      console.error("Update error:", err);
+      alert("Failed to update request.");
+    });
   };
 
   if (!formData) return <Typography>Loading...</Typography>;
@@ -204,6 +235,28 @@ export default function EditForm() {
                   label="Type of Community Activity"
                   error={!!errors.comm_Act}
                   helperText={errors.comm_Act ? "Required" : ""}
+                />
+              )}
+            />
+          </Grid>
+
+                    <Grid item xs={12}>
+            <Autocomplete
+              freeSolo
+              options={categoryOptions}
+              value={formData.comm_Category}
+              onChange={(e, val) => {
+                setFormData((prev) => ({ ...prev, comm_Category: val || '' }));
+                setErrors((prev) => ({ ...prev, comm_Category: false }));
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="SDG Category"
+                  name="comm_Category"
+                  fullWidth
+                  error={!!errors.comm_Category}
+                  helperText={errors.comm_Category ? "Required" : ""}
                 />
               )}
             />
@@ -339,6 +392,20 @@ export default function EditForm() {
                   helperText={errors.comm_Benef ? "Required" : ""}
                 />
               )}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              label="Community Activity Description"
+              name="comm_Desc"
+              fullWidth
+              multiline
+              rows={4}
+              value={formData.comm_Desc}
+              onChange={handleChange}
+              error={!!errors.comm_Desc}
+              helperText={errors.comm_Desc ? "Required" : ""}
             />
           </Grid>
 

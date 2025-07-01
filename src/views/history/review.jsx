@@ -38,7 +38,8 @@ export default function Review() {
 
   useEffect(() => {
     const empInfo = JSON.parse(localStorage.getItem('user'));
-    if (empInfo?.user_name) setCurrentUser(empInfo.user_name);
+    if (empInfo?.user_name) 
+    setCurrentUser(empInfo.user_name);
     setPosition(empInfo?.emp_position || '');
     setRole(empInfo?.role || '');
   }, []);
@@ -248,21 +249,22 @@ const canShowEditDelete = () => {
 
   const handleDelete = () => setShowDeleteConfirm(true);
 
-  const confirmDelete = async () => {
-    try {
-      await axios.get(`${config.baseApi1}/request/delete-request`, {
-        params: {
-          request_id: requestID,
-          comm_Docs: formData.comm_Docs
-        }
-      });
-      alert('Request deleted successfully.');
-      window.history.back();
-    } catch (err) {
-      console.error('Failed to delete request:', err);
-      alert('Failed to delete this request');
-    }
-  };
+const confirmDelete = async () => {
+  try {
+    await axios.get(`${config.baseApi1}/request/delete-request`, {
+      params: {
+        request_id: requestID,
+        currentUser: currentUser
+      }
+    });
+    alert('Request deleted successfully.');
+    window.history.back();
+  } catch (err) {
+    console.error('Failed to delete request:', err);
+    alert('Failed to delete this request');
+  }
+};
+
 
   const handleAccept = async () => {
   try {

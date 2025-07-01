@@ -29,6 +29,16 @@ const activityOptions = [
   'Rescue', 'Rehabilitation', 'Ayuda'
 ];
 
+const categoryOptions = [
+  '1 - No Poverty', '2 - Zero Hunger', '3 - Good Health and Well-being',
+  '4 - Quality Education', '5 - Gender Equality', '6 - Clean Water and Sanitation',
+  '7 - Affordable and Clean Energy', '8 - Decent Work and Economic Growth',
+  '9 - Industry, Innovation and Infrastructure', '10 - Reduced Inequality',
+  '11 - Sustainable Cities and Communities', '12 - Responsible Consumption and Production',
+  '13 - Climate Action', '14 - Life Below Water', '15 - Life on Land',
+  '16 - Peace, Justice and Strong Institutions', '17 - Partnerships for the Goals'
+];
+
 export default function AddForm() {
   const [commArea, setCommArea] = useState([]);
   const [commAct, setCommAct] = useState('');
@@ -38,6 +48,8 @@ export default function AddForm() {
   const [commDocs, setCommDocs] = useState([]);
   const [commEmps, setCommEmps] = useState([]);
   const [commBenef, setCommBenef] = useState([]);
+  const [commDesc, setCommDesc] = useState('');
+  const [commCategory, setCommCategory] = useState('');
   const [createdby, setCreatedBy] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -49,8 +61,13 @@ export default function AddForm() {
 
   useEffect(() => {
     const empInfo = JSON.parse(localStorage.getItem('user'));
+
+    
+
     if (empInfo?.user_name) {
       setCreatedBy(empInfo.user_name);
+
+      
     }
   }, []);
 
@@ -60,6 +77,8 @@ export default function AddForm() {
     if (!commAct) newErrors.commAct = 'Activity is required';
     if (!dateTime) newErrors.dateTime = 'Date and time is required';
     if (!commVenue) newErrors.commVenue = 'Venue is required';
+    if (!commDesc) newErrors.commDesc = 'Description is required';
+    if (!commCategory) newErrors.commCategory = 'Category is required';
     if (commGuest.length === 0) newErrors.commGuest = 'Guest list is required';
     if (commEmps.length === 0) newErrors.commEmps = 'Employee list is required';
     if (commBenef.length === 0) newErrors.commBenef = 'Beneficiaries list is required';
@@ -81,6 +100,8 @@ export default function AddForm() {
     formData.append('comm_Guest', commGuest.join(', '));
     formData.append('comm_Emps', commEmps.join(', '));
     formData.append('comm_Benef', commBenef.join(', '));
+    formData.append('comm_Desc', commDesc);
+    formData.append('comm_Category', commCategory);
     formData.append('created_by', createdby);
 
     for (let i = 0; i < commDocs.length; i++) {
@@ -103,9 +124,8 @@ export default function AddForm() {
       setCommDocs([]);
       setCommEmps([]);
       setCommBenef([]);
-      
-
-
+      setCommDesc('');
+      setCommCategory('');
     } catch (err) {
       setSnackbarMsg('Failed to submit.');
       setSnackbarSeverity('error');
@@ -162,6 +182,26 @@ export default function AddForm() {
                     required
                     error={!!errors.commAct}
                     helperText={errors.commAct}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Autocomplete
+                options={categoryOptions}
+                value={commCategory}
+                onChange={(e, newValue) => {
+                  setCommCategory(newValue || '');
+                  clearError('commCategory');
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="SDG Category"
+                    required
+                    error={!!errors.commCategory}
+                    helperText={errors.commCategory}
                   />
                 )}
               />
@@ -307,6 +347,22 @@ export default function AddForm() {
                     helperText={errors.commBenef}
                   />
                 )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Community Activity Description"
+                multiline
+                minRows={3}
+                fullWidth
+                value={commDesc}
+                onChange={(e) => {
+                  setCommDesc(e.target.value);
+                  clearError('commDesc');
+                }}
+                required
+                error={!!errors.commDesc}
+                helperText={errors.commDesc}
               />
             </Grid>
 

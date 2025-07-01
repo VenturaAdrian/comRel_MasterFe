@@ -158,11 +158,18 @@ const Reports = () => {
     });
   };
 
-  useEffect(() => {
-    axios.get(`${config.baseApi1}/request/history`)
-      .then((res) => Array.isArray(res.data) ? setData(res.data) : setData([]))
-      .catch(console.error);
-  }, []);
+useEffect(() => {
+  axios.get(`${config.baseApi1}/request/history`)
+    .then((res) => {
+      if (Array.isArray(res.data)) {
+        const active = res.data.filter(item => item.is_active === true);
+        setData(active);
+      } else {
+        setData([]);
+      }
+    })
+    .catch(console.error);
+}, []);
 
   useEffect(() => {
     if (data.length) {
